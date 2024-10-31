@@ -52,7 +52,7 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
         </Svg>
       </View>
       <View style={styles.textContainer}>
-        <Ionicons name={iconName} size={size*0.6} />
+        <Ionicons name={iconName} size={size*0.54} />
       </View>
     </View>
   );

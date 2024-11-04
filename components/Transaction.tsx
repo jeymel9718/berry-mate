@@ -25,11 +25,11 @@ export function Transaction({
       </View>
       <View  style={styles.categoryContainer}>
         <Text variant="labelMedium">{category}</Text>
-        <Text variant="labelSmall">{date}</Text>
+        <Text variant="labelSmall" style={styles.dateText}>{date}</Text>
       </View>
-      <Divider horizontalInset />
-      <Text variant="labelMedium">{transaction}</Text>
-      <Divider horizontalInset />
+      <Divider horizontalInset style={styles.divider} />
+      <Text variant="bodySmall">{transaction}</Text>
+      <Divider horizontalInset style={styles.divider} />
       <Text variant="labelMedium">{value}</Text>
     </View>
   );
@@ -50,5 +50,12 @@ const styles = StyleSheet.create({
   },
   categoryContainer: {
     marginLeft: 15,
+  },
+  dateText: {
+    fontSize: 10,
+  },
+  divider: {
+    height: '85%',
+    width: 1,
   }
 });

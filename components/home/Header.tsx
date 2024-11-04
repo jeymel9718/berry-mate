@@ -1,50 +1,71 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useWindowDimensions } from "react-native";
-import { H3, H6, Separator, SizableText, View, XStack, YStack } from "tamagui";
+import { useWindowDimensions, View, StyleSheet } from "react-native";
 import { ProgressBar } from "./ProgressBar";
+import { Divider, Text } from "react-native-paper";
 
 export default function Header() {
   const { height, width } = useWindowDimensions();
   return (
-    <YStack marginTop="$6" marginHorizontal="$4" gap="$4">
-      <YStack gap="$0">
-        <H3>Welcome Back!</H3>
-        <H6>Good Morning</H6>
-      </YStack>
-      <YStack alignSelf="center" height={30} gap="$4" width={width * 0.85}>
-        <XStack justifyContent="space-around">
-          <YStack>
-            <XStack alignItems="center">
+    <View style={styles.container}>
+      <View>
+        <Text variant="headlineMedium">Welcome Back!</Text>
+        <Text variant="headlineSmall">Good Morning</Text>
+      </View>
+      <View style={[styles.centerContainer, {width: width * 0.85}]}>
+        <View style={styles.balanceContainer}>
+          <View>
+            <View style={styles.rowContainer}>
               <Ionicons name="enter-outline" size={15} />
-              <SizableText size="$3" paddingLeft="$1.5">
+              <Text variant="labelLarge">
                 Total Balance
-              </SizableText>
-            </XStack>
-            <SizableText size="$7">$7,783.00</SizableText>
-          </YStack>
-          <Separator vertical marginHorizontal={15} />
-          <YStack>
-            <XStack alignItems="center">
+              </Text>
+            </View>
+            <Text variant="titleSmall">$7,783.00</Text>
+          </View>
+          <Divider horizontalInset />
+          <View>
+            <View style={styles.rowContainer}>
               <Ionicons name="exit-outline" size={15} />
-              <SizableText size="$3" paddingLeft="$1.5">
+              <Text variant="labelLarge">
                 Total Expense
-              </SizableText>
-            </XStack>
-            <SizableText size="$7" theme="alt2">
+              </Text>
+            </View>
+            <Text variant="titleSmall">
               -$1,187.40
-            </SizableText>
-          </YStack>
-        </XStack>
-        <YStack>
+            </Text>
+          </View>
+        </View>
+        <View>
           <ProgressBar progress={20} amount={20000.0} />
-          <XStack alignItems="center" alignSelf="center">
+          <View style={styles.rowContainer}>
             <Ionicons size={13} name="checkbox-outline" />
-            <SizableText size="$2" paddingLeft="$1.5">
+            <Text variant="labelSmall">
               20% Of Your Expenses
-            </SizableText>
-          </XStack>
-        </YStack>
-      </YStack>
-    </YStack>
+            </Text>
+          </View>
+        </View>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginTop: 25,
+    marginHorizontal: 25,
+    gap: 4,
+  },
+  centerContainer: {
+    alignSelf: "center", 
+    height: 30,
+    gap: 4,
+  },
+  balanceContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  rowContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+});

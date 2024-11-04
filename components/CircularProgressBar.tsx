@@ -1,9 +1,8 @@
 // CircularProgressBar.tsx
 import { Ionicons } from "@expo/vector-icons";
 import React, { ComponentProps } from "react";
-import { StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { Text, View } from "tamagui";
 
 interface CircularProgressBarProps {
   size: number;

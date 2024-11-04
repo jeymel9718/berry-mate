@@ -1,5 +1,4 @@
-import { type TextProps, StyleSheet } from 'react-native';
-import { Text } from 'tamagui';
+import { type TextProps, Text, StyleSheet } from 'react-native';
 
 import { useThemeColor } from '@/hooks/useThemeColor';
 

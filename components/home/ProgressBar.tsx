@@ -1,5 +1,4 @@
-import { StyleSheet } from 'react-native';
-import { Text, View } from 'tamagui';
+import { Text, View, StyleSheet } from 'react-native';
 
 export type ProgressBarProps = {
   progress: number

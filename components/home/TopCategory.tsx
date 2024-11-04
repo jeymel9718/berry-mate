@@ -1,6 +1,7 @@
-import { Separator, SizableText, XStack, YStack } from "tamagui";
 import CircularProgressBar from "../CircularProgressBar";
 import { ComponentProps } from "react";
+import { View, StyleSheet } from "react-native";
+import { Divider, Text } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { windowWidth } from "@/constants/Dimensions";
 
@@ -19,7 +20,7 @@ export function TopCategory({
 }: TopCategoryProps) {
   const progress = (balance / budget) * 100;
   return (
-    <XStack marginVertical="$1.5">
+    <View style={styles.container}>
       <CircularProgressBar
         size={windowWidth * 0.17}
         strokeWidth={4}
@@ -28,21 +29,34 @@ export function TopCategory({
         backgroundColor="#e0e0e0"
         iconName={iconName}
       />
-      <Separator alignSelf="stretch" vertical marginHorizontal={15} />
-      <YStack alignItems="center">
-        <XStack>
-          <SizableText>{categoryName}:</SizableText>
-          <SizableText marginHorizontal="$2" theme="alt1">
+      <Divider horizontalInset />
+      <View style={styles.center}>
+        <View style={styles.row}>
+          <Text variant="labelMedium">{categoryName}:</Text>
+          <Text variant="labelSmall">
             ${balance}
-          </SizableText>
-          <SizableText>/</SizableText>
-          <SizableText marginHorizontal="$2" theme="alt1">
+          </Text>
+          <Text>/</Text>
+          <Text variant="labelSmall">
             ${budget}
-          </SizableText>
-        </XStack>
-        <Separator alignSelf="stretch" marginVertical={3} />
-        <SizableText>{Math.round(progress)}%</SizableText>
-      </YStack>
-    </XStack>
+          </Text>
+        </View>
+        <Divider horizontalInset />
+        <Text variant="labelLarge">{Math.round(progress)}%</Text>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    marginVertical: 2
+  },
+  center: {
+    alignItems: "center",
+  },
+  row: {
+    flexDirection: "row"
+  }
+});

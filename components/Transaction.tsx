@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { ComponentProps } from "react";
-import { Separator, SizableText, View, XStack, YStack } from "tamagui";
+import { View, StyleSheet } from 'react-native';
+import { Divider, Text } from "react-native-paper";
 
 export type TransactionProps = {
   iconName: ComponentProps<typeof Ionicons>["name"];
@@ -18,25 +19,36 @@ export function Transaction({
   value,
 }: TransactionProps) {
   return (
-    <XStack alignItems="center" marginVertical={10}>
-      <View
-        bg="$blue7Light"
-        borderRadius={20}
-        height={50}
-        width={50}
-        alignItems="center"
-        justifyContent="center"
-      >
+    <View style={styles.container}>
+      <View style={styles.iconContainer}>
         <Ionicons name={iconName} size={25} />
       </View>
-      <YStack marginLeft={15} >
-        <SizableText size="$2">{category}</SizableText>
-        <SizableText size="$1">{date}</SizableText>
-      </YStack>
-      <Separator alignSelf="stretch" vertical marginHorizontal={15} />
-      <SizableText overflow="hidden" size="$2">{transaction}</SizableText>
-      <Separator alignSelf="stretch" vertical={true} marginHorizontal={15}/>
-      <SizableText size="$3">{value}</SizableText>
-    </XStack>
+      <View  style={styles.categoryContainer}>
+        <Text variant="labelMedium">{category}</Text>
+        <Text variant="labelSmall">{date}</Text>
+      </View>
+      <Divider horizontalInset />
+      <Text variant="labelMedium">{transaction}</Text>
+      <Divider horizontalInset />
+      <Text variant="labelMedium">{value}</Text>
+    </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    flexDirection: 'row'
+  },
+  iconContainer: {
+    borderRadius: 20,
+    height: 50,
+    width: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'blue',
+  },
+  categoryContainer: {
+    marginLeft: 15,
+  }
+});

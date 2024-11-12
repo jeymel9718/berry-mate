@@ -1,7 +1,7 @@
 // CircularProgressBar.tsx
-import { Ionicons } from "@expo/vector-icons";
-import React, { ComponentProps } from "react";
+import React from "react";
 import { View, StyleSheet } from "react-native";
+import { Icon } from "react-native-paper";
 import Svg, { Circle } from "react-native-svg";
 
 interface CircularProgressBarProps {
@@ -10,7 +10,7 @@ interface CircularProgressBarProps {
   progress: number; // Progress percentage (0 to 100)
   color: string;
   backgroundColor: string;
-  iconName: ComponentProps<typeof Ionicons>['name'];
+  iconName: string;
 }
 
 const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
@@ -51,7 +51,7 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
         </Svg>
       </View>
       <View style={styles.textContainer}>
-        <Ionicons name={iconName} size={size*0.54} />
+        <Icon source={iconName} size={size*0.54} />
       </View>
     </View>
   );

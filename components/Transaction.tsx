@@ -1,10 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
-import { ComponentProps } from "react";
 import { View, StyleSheet } from 'react-native';
-import { Divider, Text } from "react-native-paper";
+import { Divider, Icon, Text } from "react-native-paper";
 
 export type TransactionProps = {
-  iconName: ComponentProps<typeof Ionicons>["name"];
+  iconName: string;
   date: string;
   category: string;
   transaction: string;
@@ -21,7 +19,7 @@ export function Transaction({
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <Ionicons name={iconName} size={25} />
+        <Icon source={iconName} size={25} />
       </View>
       <View  style={styles.categoryContainer}>
         <Text variant="labelMedium">{category}</Text>
@@ -38,7 +36,8 @@ export function Transaction({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    flexDirection: 'row'
+    flexDirection: 'row',
+    marginVertical: 7,
   },
   iconContainer: {
     borderRadius: 20,

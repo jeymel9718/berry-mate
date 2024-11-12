@@ -1,15 +1,13 @@
 import CircularProgressBar from "../CircularProgressBar";
-import { ComponentProps } from "react";
 import { View, StyleSheet } from "react-native";
 import { Divider, Text } from "react-native-paper";
-import { Ionicons } from "@expo/vector-icons";
-import { windowWidth } from "@/constants/Dimensions";
+import { windowHeight, windowWidth } from "@/constants/Dimensions";
 
 export type TopCategoryProps = {
   categoryName: string;
   budget: number;
   balance: number;
-  iconName: ComponentProps<typeof Ionicons>["name"];
+  iconName: string;
 };
 
 export function TopCategory({
@@ -29,7 +27,7 @@ export function TopCategory({
         backgroundColor="#e0e0e0"
         iconName={iconName}
       />
-      <Divider horizontalInset />
+      <Divider horizontalInset style={styles.divider} />
       <View style={styles.center}>
         <View style={styles.row}>
           <Text variant="labelMedium">{categoryName}:</Text>
@@ -41,7 +39,7 @@ export function TopCategory({
             ${budget}
           </Text>
         </View>
-        <Divider horizontalInset />
+        <Divider style={styles.horizontalDivider} />
         <Text variant="labelLarge">{Math.round(progress)}%</Text>
       </View>
     </View>
@@ -51,12 +49,23 @@ export function TopCategory({
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    marginVertical: 2
+    alignItems: 'center',
+    marginVertical: 2,
+    padding: 5,
   },
   center: {
     alignItems: "center",
   },
   row: {
     flexDirection: "row"
+  },
+  divider: {
+    height: windowWidth*0.15,
+    width: 1,
+  },
+  horizontalDivider: {
+    margin: 5,
+    height: 1,
+    width: windowHeight*0.25
   }
 });

@@ -1,49 +1,15 @@
-import { useWindowDimensions, View, StyleSheet } from "react-native";
-import { ProgressBar } from "./ProgressBar";
-import { Divider, Icon, Text } from "react-native-paper";
+import { View, StyleSheet } from "react-native";
+import { Text } from "react-native-paper";
+import { BalanceHeader } from "../BalanceHeader";
 
 export default function Header() {
-  const { height, width } = useWindowDimensions();
   return (
     <View style={styles.container}>
       <View>
         <Text variant="titleMedium">Welcome Back!</Text>
         <Text variant="labelMedium">Good Morning</Text>
       </View>
-      <View style={[styles.centerContainer, {width: width*0.83}]}>
-        <View style={styles.balanceContainer}>
-          <View>
-            <View style={styles.rowContainer}>
-              <Icon size={17} source="bank-transfer-in" />
-              <Text variant="labelMedium">
-                Total Balance
-              </Text>
-            </View>
-            <Text variant="titleLarge">$7,783.00</Text>
-          </View>
-          <Divider horizontalInset style={styles.divider}/>
-          <View>
-            <View style={styles.rowContainer}>
-              <Icon size={17} source="bank-transfer-out" />
-              <Text variant="labelMedium">
-                Total Expense
-              </Text>
-            </View>
-            <Text variant="titleLarge">
-              -$1,187.40
-            </Text>
-          </View>
-        </View>
-        <View style={{gap: 6}}>
-          <ProgressBar progress={20} amount={20000.0} />
-          <View style={styles.rowContainer}>
-            <Icon size={13} source="checkbox-outline" />
-            <Text variant="labelMedium">
-              20% Of Your Expenses
-            </Text>
-          </View>
-        </View>
-      </View>
+      <BalanceHeader />
     </View>
   );
 }

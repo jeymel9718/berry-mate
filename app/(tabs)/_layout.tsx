@@ -32,6 +32,15 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen 
+        name="categories"
+        options={{
+          title: 'Categories',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'albums' : 'albums-outline'} color={color} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="explore"
         options={{

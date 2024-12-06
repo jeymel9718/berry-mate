@@ -2,12 +2,14 @@ import Header from "@/components/home/Header";
 import { TopCategory } from "@/components/home/TopCategory";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { Transaction } from "@/components/Transaction";
+import { useIsFocused } from "@react-navigation/native";
 import { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { Card, FAB, Portal } from "react-native-paper";
 
 export default function IndexScreen() {
   const [open, setOpen] = useState<boolean>(false);
+  const isFocused = useIsFocused();
   
   return (
     <ParallaxScrollView
@@ -18,7 +20,7 @@ export default function IndexScreen() {
         <Portal>
           <FAB.Group
             open={open}
-            visible
+            visible={isFocused}
             fabStyle={styles.fab}
             icon={open ? "close" : "plus"}
             actions={[

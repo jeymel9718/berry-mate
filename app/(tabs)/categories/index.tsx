@@ -3,6 +3,9 @@ import { Category } from "@/components/categories/Category";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { DefaultCategories } from "@/constants/Categories";
 import { Category as CategoryType } from "@/constants/Types";
+import { usePreferences } from "@/contexts/Preferences";
+import { useFocusEffect } from "expo-router";
+import { useContext, useEffect } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 
 function generateSubarrays(array: any[], size: number) {
@@ -15,7 +18,13 @@ function generateSubarrays(array: any[], size: number) {
 }
 
 export default function CategoriesScreen() {
+  const preferences = usePreferences();
   const data: CategoryType[][] = generateSubarrays(DefaultCategories, 3);
+  
+  useFocusEffect(() => {
+    preferences.hideFab();
+  });
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}

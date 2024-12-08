@@ -2,15 +2,23 @@ import Header from "@/components/home/Header";
 import { TopCategory } from "@/components/home/TopCategory";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { Transaction } from "@/components/Transaction";
-import { useIsFocused } from "@react-navigation/native";
+import { usePreferences } from "@/contexts/Preferences";
+import { useFocusEffect, useNavigation } from "expo-router";
 import { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { Card, FAB, Portal } from "react-native-paper";
 
 export default function IndexScreen() {
   const [open, setOpen] = useState<boolean>(false);
-  const isFocused = useIsFocused();
-  
+  const preferences = usePreferences();
+  const navigation = useNavigation();
+
+  useFocusEffect(() => {
+    preferences.showFab();
+
+    return () => preferences.hideFab();
+  });
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
@@ -20,8 +28,9 @@ export default function IndexScreen() {
         <Portal>
           <FAB.Group
             open={open}
-            visible={isFocused}
+            visible={preferences.fabVisible}
             fabStyle={styles.fab}
+            style={styles.fabOptions}
             icon={open ? "close" : "plus"}
             actions={[
               {
@@ -32,7 +41,11 @@ export default function IndexScreen() {
               {
                 icon: "bank-transfer-out",
                 label: "Add Expense",
-                onPress: () => console.log("Expense"),
+                onPress: () =>
+                  navigation.navigate("categories", {
+                    screen: "expense",
+                    initial: false,
+                  }),
               },
             ]}
             onStateChange={({ open }: { open: boolean }) => setOpen(open)}
@@ -108,7 +121,8 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 5,
   },
-  fab: {
+  fab: {},
+  fabOptions: {
     bottom: 45,
     right: 0,
   },

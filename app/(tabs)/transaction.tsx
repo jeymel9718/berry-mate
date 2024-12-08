@@ -9,7 +9,9 @@ import { IconButton, List } from "react-native-paper";
 import { Transaction } from "@/components/Transaction";
 import { BalanceActions } from "@/constants/Enums";
 import { BalanceState } from "@/constants/Types";
-import { useReducer } from "react";
+import { useContext, useEffect, useReducer } from "react";
+import { usePreferences } from "@/contexts/Preferences";
+import { useFocusEffect } from "expo-router";
 
 
 function reducer(state: BalanceState, action: BalanceActions) {
@@ -29,6 +31,14 @@ function reducer(state: BalanceState, action: BalanceActions) {
 
 export default function TransactionScreen() {
   const [state, dispatch] = useReducer(reducer, {income: false, expense: false});
+  const preferences = usePreferences();
+  
+  useFocusEffect(() => {
+    preferences.showFab();
+
+    return () => preferences.hideFab();
+  });
+  
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}

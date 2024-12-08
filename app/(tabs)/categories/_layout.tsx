@@ -10,6 +10,7 @@ export default function CategoriesLayout() {
     <Stack initialRouteName="index" screenOptions={{ headerTransparent: true, headerTitleAlign: 'center' }}>
       <Stack.Screen name="index" options={{ title: "Categories" }} />
       <Stack.Screen name="[category]" />
+      <Stack.Screen name="expense" options={{title: "Add Expenses"}} />
     </Stack>
   );
 }

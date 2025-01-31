@@ -11,7 +11,7 @@ import { Card, FAB, Portal } from "react-native-paper";
 export default function IndexScreen() {
   const [open, setOpen] = useState<boolean>(false);
   const preferences = usePreferences();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
 
   useFocusEffect(() => {
     preferences.showFab();

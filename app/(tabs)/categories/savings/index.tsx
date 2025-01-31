@@ -1,21 +1,20 @@
 import { BalanceHeader } from "@/components/BalanceHeader";
-import { Category } from "@/components/categories/Category";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { DefaultCategories } from "@/constants/Categories";
+import { Saving } from "@/components/savings/Saving";
 import { Category as CategoryType } from "@/constants/Types";
-import { usePreferences } from "@/contexts/Preferences";
 import { generateSubarrays } from "@/utils/utils";
-import { useFocusEffect } from "expo-router";
-import { useContext, useEffect } from "react";
-import { FlatList, StyleSheet, View } from "react-native";
+import { View, StyleSheet } from "react-native";
 
-export default function CategoriesScreen() {
-  const preferences = usePreferences();
-  const data: CategoryType[][] = generateSubarrays(DefaultCategories, 3);
-  
-  useFocusEffect(() => {
-    preferences.hideFab();
-  });
+export default function SavingsScreen() {
+  const data: CategoryType[][] = generateSubarrays(
+    [
+      { name: "Tavel", iconName: "airplane" },
+      { name: "New House", iconName: "home-outline" },
+      { name: "Car", iconName: "car"},
+      { name: "Wedding", iconName: "ring" },
+    ],
+    3
+  );
 
   return (
     <ParallaxScrollView
@@ -37,7 +36,7 @@ export default function CategoriesScreen() {
         return (
           <View key={index} style={styles.rowContainer}>
             {arr.map((cat, i) => (
-              <Category key={i} name={cat.name} iconName={cat.iconName} />
+              <Saving key={i} name={cat.name} iconName={cat.iconName} />
             ))}
           </View>
         );

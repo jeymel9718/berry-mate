@@ -1,4 +1,8 @@
-import { Text, View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import { Surface, Text } from 'react-native-paper'
+import { windowHeight } from '@/constants/Dimensions';
+import { useEffect } from 'react';
 
 export type ProgressBarProps = {
   progress: number
@@ -7,52 +11,54 @@ export type ProgressBarProps = {
 
 export function ProgressBar({ progress, amount }: ProgressBarProps) {
   const amountColor = progress >= 86 ? 'white': "#263238";
+  const progressWidth = useSharedValue<number>(100);
+
+  const animatedWidth = useAnimatedStyle(() => ({
+    width: `${progressWidth.value}%`
+  }));
+
+  useEffect(() => {
+    progressWidth.value = withTiming(100 - progress, {
+      duration: 1000
+    });
+  });
+
   return (
-    <View style={styles.container}>
-      <View style={[styles.progressBar, { width: `${progress}%` }]}>
-        <Text style={styles.progressText}>{`${progress}%`}</Text>
+    <Surface style={styles.container}>
+      <View style={styles.textContainer}>
+        <Text style={{color: 'white'}}>{progress}%</Text>
+        <Text style={{color: amountColor}}>${amount.toFixed(2)}</Text>
       </View>
-      <View style={styles.amountContainer}>
-        <Text style={[styles.amountText, { color: amountColor }]}>{`$${amount.toFixed(2)}`}</Text>
-      </View>
-    </View>
+      <Animated.View style={[styles.progressContainer, animatedWidth]} />
+    </Surface>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    height: 30,
-    backgroundColor: "#E8F5E9",
-    borderRadius: 15,
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "space-between",
-    position: 'relative'
+    position: 'relative',
+    flexDirection: 'row',
+    backgroundColor: '#052224',
+    height: windowHeight*0.043,
+    borderRadius: 15, 
   },
-  progressBar: {
-    backgroundColor: "#263238",
-    height: "100%",
-    borderTopLeftRadius: 15,
-    borderBottomLeftRadius: 15,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 8,
+  textContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    paddingHorizontal: 20,
+    width: '100%',
+    height: '100%',
+    zIndex: 1,
   },
-  progressText: {
-    color: "white",
-    fontWeight: "bold",
-  },
-  amountContainer: {
-    flex: 1,
+  progressContainer: {
+    backgroundColor: '#F1FFF3',
+    alignSelf: 'stretch',
     position: 'absolute',
+    height: "100%",
+    borderRadius: 15,
     right: 0,
-    zIndex: 1, 
-    justifyContent: "center",
-    alignItems: "flex-end",
-    paddingHorizontal: 10,
-  },
-  amountText: {
-    fontWeight: "bold",
-  },
+  }
 });

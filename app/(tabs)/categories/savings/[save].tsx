@@ -2,15 +2,36 @@ import { Transaction } from "@/components/categories/Transaction";
 import CircularProgressBar from "@/components/CircularProgressBar";
 import { ProgressBar } from "@/components/home/ProgressBar";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { windowWidth } from "@/constants/Dimensions";
-import { useLocalSearchParams, useNavigation } from "expo-router";
-import { useEffect } from "react";
+import { windowHeight, windowWidth } from "@/constants/Dimensions";
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
+import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { Icon, List, Surface, Text } from "react-native-paper";
+import {
+  FAB,
+  Icon,
+  IconButton,
+  List,
+  Portal,
+  Surface,
+  Text,
+} from "react-native-paper";
 
 export default function SaveScreen() {
   const { save } = useLocalSearchParams<{ save: string }>();
+  const [visible, setVisible] = useState<boolean>();
   const navigation = useNavigation();
+  const router = useRouter();
+
+  useFocusEffect(() => {
+    setVisible(true);
+
+    return () => setVisible(false);
+  });
 
   useEffect(() => {
     navigation.setOptions({
@@ -24,6 +45,17 @@ export default function SaveScreen() {
       headerImage={<View />}
       headerHeight={100}
     >
+      <Portal>
+        <FAB
+          label="Add Savings"
+          style={styles.addFab}
+          customSize={35}
+          visible={visible}
+          onPress={() => {
+            router.push(`/categories/savings/saving?category=${save}`);
+          }}
+        />
+      </Portal>
       {/* Goal and Amount Saved */}
       <View style={styles.goalContainer}>
         <View style={styles.goalRowContainer}>
@@ -53,7 +85,13 @@ export default function SaveScreen() {
         </Text>
       </View>
 
-      <View>
+      <View style={styles.listContainer}>
+        <IconButton
+          icon="calendar"
+          mode="contained"
+          onPress={() => console.log("Pressed")}
+          style={styles.calendar}
+        />
         <List.Section>
           <List.Subheader>April</List.Subheader>
           <Transaction
@@ -99,6 +137,7 @@ const styles = StyleSheet.create({
   goalRowContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     width: "100%",
     marginBottom: 25,
   },
@@ -145,5 +184,18 @@ const styles = StyleSheet.create({
   progressText: {
     marginTop: 8,
     color: "#6B7280",
+  },
+  listContainer: {
+    position: "relative",
+  },
+  calendar: {
+    position: "absolute",
+    right: 10,
+    top: 5,
+  },
+  addFab: {
+    position: "absolute",
+    alignSelf: "center",
+    bottom: 55,
   },
 });

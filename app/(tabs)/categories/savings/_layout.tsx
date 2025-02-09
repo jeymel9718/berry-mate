@@ -5,6 +5,7 @@ export default function SavingsLayout() {
     <Stack initialRouteName="index" screenOptions={{ headerTransparent: true, headerTitleAlign: 'center' }}>
       <Stack.Screen name="index" options={{ title: "Savings" }} />
       <Stack.Screen name="[save]" />
+      <Stack.Screen name="saving" options={{ title: "Add Savings" }} />
     </Stack>
   );
 };

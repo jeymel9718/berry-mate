@@ -24,90 +24,88 @@ export default function IndexScreen() {
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
       headerImage={<Header />}
     >
-      <View>
-        <Portal>
-          <FAB.Group
-            open={open}
-            visible={preferences.fabVisible}
-            fabStyle={styles.fab}
-            style={styles.fabOptions}
-            icon={open ? "close" : "plus"}
-            actions={[
-              {
-                icon: "bank-transfer-in",
-                label: "Add Income",
-                onPress: () => console.log("Income"),
-              },
-              {
-                icon: "bank-transfer-out",
-                label: "Add Expense",
-                onPress: () =>
-                  navigation.navigate("categories", {
-                    screen: "expense",
-                    initial: false,
-                  }),
-              },
-            ]}
-            onStateChange={({ open }: { open: boolean }) => setOpen(open)}
-          />
-        </Portal>
-        <Card elevation={4}>
-          <TopCategory
-            categoryName="Groceries"
-            budget={300}
-            balance={120}
-            iconName="food-outline"
-          />
-          <TopCategory
-            categoryName="Groceries"
-            budget={300}
-            balance={120}
-            iconName="food-outline"
-          />
-          <TopCategory
-            categoryName="Groceries"
-            budget={300}
-            balance={120}
-            iconName="food-outline"
-          />
-        </Card>
-        <View style={{ marginTop: 20, gap: 5 }}>
-          <Transaction
-            iconName="car-outline"
-            date="April 30"
-            category="Transportation"
-            transaction="Fuel"
-            value={20000}
-          />
-          <Transaction
-            iconName="car-outline"
-            date="April 30"
-            category="Transportation"
-            transaction="Fuel"
-            value={20000}
-          />
-          <Transaction
-            iconName="car-outline"
-            date="April 30"
-            category="Transportation"
-            transaction="Fuel"
-            value={20000}
-          />
-          <Transaction
-            iconName="car-outline"
-            date="April 30"
-            category="Transportation"
-            transaction="Fuel"
-            value={20000}
-          />
-          <Transaction
-            iconName="car-outline"
-            date="April 30"
-            category="Transportation"
-            transaction="Fuel"
-            value={20000}
-          />
-        </View>
+      <Portal>
+        <FAB.Group
+          open={open}
+          visible={preferences.fabVisible}
+          fabStyle={styles.fab}
+          style={styles.fabOptions}
+          icon={open ? "close" : "plus"}
+          actions={[
+            {
+              icon: "bank-transfer-in",
+              label: "Add Income",
+              onPress: () => console.log("Income"),
+            },
+            {
+              icon: "bank-transfer-out",
+              label: "Add Expense",
+              onPress: () =>
+                navigation.navigate("categories", {
+                  screen: "expense",
+                  initial: false,
+                }),
+            },
+          ]}
+          onStateChange={({ open }: { open: boolean }) => setOpen(open)}
+        />
+      </Portal>
+      <Card elevation={4}>
+        <TopCategory
+          categoryName="Groceries"
+          budget={300}
+          balance={120}
+          iconName="food-outline"
+        />
+        <TopCategory
+          categoryName="Groceries"
+          budget={300}
+          balance={120}
+          iconName="food-outline"
+        />
+        <TopCategory
+          categoryName="Groceries"
+          budget={300}
+          balance={120}
+          iconName="food-outline"
+        />
+      </Card>
+      <View style={{ marginTop: 20, gap: 5 }}>
+        <Transaction
+          iconName="car-outline"
+          date="April 30"
+          category="Transportation"
+          transaction="Fuel"
+          value={20000}
+        />
+        <Transaction
+          iconName="car-outline"
+          date="April 30"
+          category="Transportation"
+          transaction="Fuel"
+          value={20000}
+        />
+        <Transaction
+          iconName="car-outline"
+          date="April 30"
+          category="Transportation"
+          transaction="Fuel"
+          value={20000}
+        />
+        <Transaction
+          iconName="car-outline"
+          date="April 30"
+          category="Transportation"
+          transaction="Fuel"
+          value={20000}
+        />
+        <Transaction
+          iconName="car-outline"
+          date="April 30"
+          category="Transportation"
+          transaction="Fuel"
+          value={20000}
+        />
       </View>
     </ParallaxScrollView>
   );

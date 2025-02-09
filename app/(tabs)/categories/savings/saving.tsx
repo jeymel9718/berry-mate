@@ -4,11 +4,11 @@ import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Button, Text, TextInput, useTheme } from "react-native-paper";
 
-export default function ExpenseScreen() {
-  const { category } = useLocalSearchParams<{ category: string }>();
+export default function SavingScreen() {
+  const { category } = useLocalSearchParams<{ category?: string }>();
   const theme = useTheme();
   const [expense, setExpense] = useState<Expense>({
     date: new Date(),

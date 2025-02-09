@@ -1,14 +1,27 @@
 import { BalanceHeader } from "@/components/BalanceHeader";
 import { Transaction } from "@/components/categories/Transaction";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { useLocalSearchParams, useNavigation } from "expo-router";
-import { useEffect } from "react";
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
+import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { IconButton, List } from "react-native-paper";
+import { FAB, IconButton, List, Portal } from "react-native-paper";
 
 export default function CategoryScreen() {
   const { category } = useLocalSearchParams<{ category: string }>();
+  const [visible, setVisible] = useState<boolean>();
   const navigation = useNavigation();
+  const router = useRouter();
+
+  useFocusEffect(() => {
+    setVisible(true);
+
+    return () => setVisible(false);
+  });
 
   useEffect(() => {
     navigation.setOptions({
@@ -31,6 +44,17 @@ export default function CategoryScreen() {
       }
       headerHeight={220}
     >
+      <Portal>
+        <FAB
+          label="Add Expenses"
+          style={styles.addFab}
+          customSize={35}
+          visible={visible}
+          onPress={() => {
+            router.push(`/categories/expense?category=${category}`);
+          }}
+        />
+      </Portal>
       <IconButton
         icon="calendar"
         mode="contained"
@@ -79,5 +103,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 10,
     top: 5,
+  },
+  addFab: {
+    position: "absolute",
+    alignSelf: "center",
+    bottom: 55,
   },
 });

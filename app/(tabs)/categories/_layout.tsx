@@ -12,6 +12,7 @@ export default function CategoriesLayout() {
       <Stack.Screen name="[category]" />
       <Stack.Screen name="expense" options={{title: "Add Expenses"}} />
       <Stack.Screen name="savings" options={{ headerShown: false }}/>
+      <Stack.Screen name="More" options={{title: "Add New Category"}} />
     </Stack>
   );
 }

@@ -1,4 +1,4 @@
-import { Category } from "./Types";
+import { Category, IconItem } from "./Types";
 
 export const DefaultCategories: Category[] = [
   {name: "Food", iconName: "silverware-variant"},
@@ -8,3 +8,48 @@ export const DefaultCategories: Category[] = [
   {name: "Rent", iconName: "home-city-outline"},
   {name: "More", iconName: "plus"}
 ]
+
+export const IconCategories: IconItem[] = [
+  { id: 'home', name: 'home' },
+  { id: 'bed', name: 'bed-queen-outline' },
+  { id: 'cake', name: 'cake-variant-outline' },
+  { id: 'gift', name: 'gift-open-outline' },
+  { id: 'teddy-bear', name: 'teddy-bear' },
+  { id: 'party', name: 'party-popper' },
+  { id: 'pine-tree', name: 'pine-tree' },
+  { id: 'train-car', name: 'train-car' },
+  { id: 'car', name: 'car' },
+  { id: 'bus', name: 'bus' },
+  { id: 'cart', name: 'cart-variant' },
+  { id: 'ferry', name: 'ferry' },
+  { id: 'candy', name: 'candy' },
+  { id: 'apple', name: 'food-apple-outline' },
+  { id: 'food-box', name: 'food-takeout-box-outline' },
+  { id: 'hamburger', name: 'hamburger' },
+  { id: 'food', name: 'food' },
+  { id: 'credit-card', name: 'credit-card' },
+  { id: 'wallet-travel', name: 'wallet-travel' },
+  { id: 'airplane', name: 'airplane' },
+  { id: 'cellphone', name: 'cellphone' },
+  { id: 'television', name: 'television' },
+  { id: 'cash', name: 'cash' },
+  { id: 'cash-register', name: 'cash-register' },
+  { id: 'ring', name: 'ring' },
+  { id: 'cat', name: 'cat' },
+  { id: 'pet', name: 'paw' },
+  { id: 'gas', name: 'gas-station-outline' },
+  { id: 'electricity', name: 'lightning-bolt-outline' },
+  { id: 'water', name: 'water-outline' },
+  { id: 'plant', name: 'sprout-outline' },
+  { id: 'dog', name: 'dog' },
+  { id: 'pill', name: 'pill' },
+  { id: 'hospital', name: 'hospital-box-outline' },
+  { id: 'medication', name: 'medical-bag' },
+  { id: 'shopping', name: 'shopping-outline' },
+  { id: 'store', name: 'store-outline' },
+  { id: 'gym', name: 'dumbbell' },
+  { id: 'music', name: 'music-box-multiple-outline' },
+  { id: 'baby', name: 'baby-face-outline' },
+  { id: 'beach', name: 'beach' },
+  { id: 'bicycle', name: 'bicycle' },
+];

@@ -28,3 +28,8 @@ export type TabParamList = {
   transaction: undefined;
   index: undefined;
 };
+
+export type IconItem = {
+  id: string
+  name: string;
+};

@@ -1,12 +1,21 @@
 import { IconCategories } from "@/constants/Categories";
+import { windowHeight } from "@/constants/Dimensions";
 import { IconItem } from "@/constants/Types";
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { TouchableOpacity, StyleSheet, View, TextInput, FlatList } from "react-native";
-import { Icon, Text } from "react-native-paper";
+import {
+  TouchableOpacity,
+  StyleSheet,
+  View,
+  TextInput,
+  FlatList,
+} from "react-native";
+import { Button, Icon, Text } from "react-native-paper";
 
 export default function MoreScreen() {
-  const [categoryName, setCategoryName] = useState<string>('');
-  const [selectedIcon, setSelectedIcon] = useState<string>('');
+  const { savings } = useLocalSearchParams<{ savings: string }>();
+  const [categoryName, setCategoryName] = useState<string>("");
+  const [selectedIcon, setSelectedIcon] = useState<string>("");
 
   const renderIconItem = (item: IconItem) => {
     const isSelected = selectedIcon && selectedIcon === item.name;
@@ -21,7 +30,7 @@ export default function MoreScreen() {
         <Icon
           source={item.name}
           size={32}
-          color={isSelected ? '#007BFF' : '#333'}
+          color={isSelected ? "#007BFF" : "#333"}
         />
       </TouchableOpacity>
     );
@@ -29,25 +38,25 @@ export default function MoreScreen() {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Category Name"
-        value={categoryName}
-        onChangeText={setCategoryName}
-      />
-      <Text style={styles.subtitle}>Select an Icon</Text>
-      <FlatList
-        data={IconCategories}
-        keyExtractor={(item) => item.id}
-        renderItem={({item}) => renderIconItem(item)}
-        numColumns={3}
-        contentContainerStyle={styles.grid}
-      />
-      <TouchableOpacity
-        style={styles.createButton}
-      >
-        <Text style={styles.createButtonText}>Create</Text>
-      </TouchableOpacity>
+      <View style={styles.headerContainer} />
+      <View style={styles.bodyContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Category Name"
+          value={categoryName}
+          onChangeText={setCategoryName}
+        />
+        <Text style={styles.subtitle}>Select an Icon</Text>
+        <FlatList
+          data={IconCategories}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => renderIconItem(item)}
+          initialNumToRender={1}
+          numColumns={3}
+          contentContainerStyle={styles.grid}
+        />
+        <Button mode="contained" style={styles.button}>Create</Button>
+      </View>
     </View>
   );
 }
@@ -55,25 +64,35 @@ export default function MoreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
-    paddingTop: 90,
-    paddingHorizontal: 20
+    backgroundColor: "#A1CEDC",
+  },
+  headerContainer: {
+    backgroundColor: '#A1CEDC',
+    height: windowHeight*0.13
+  },
+  bodyContainer: {
+    paddingHorizontal: 25,
+    paddingTop: 20,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    backgroundColor: 'white',
+    height: "86%"
   },
   title: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 16,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
+    borderColor: "#ccc",
+    borderRadius: 30,
+    padding: 10,
     marginBottom: 16,
   },
   subtitle: {
     fontSize: 18,
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   grid: {
@@ -81,27 +100,19 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     margin: 8,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 8,
   },
   selectedIconContainer: {
-    backgroundColor: '#e0f7fa',
-    borderColor: '#007BFF',
+    backgroundColor: "#e0f7fa",
+    borderColor: "#007BFF",
   },
-  createButton: {
-    backgroundColor: '#007BFF',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  createButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  button: {
+    marginBottom: 10,
+  }
 });

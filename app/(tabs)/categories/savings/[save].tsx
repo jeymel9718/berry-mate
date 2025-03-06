@@ -197,5 +197,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     alignSelf: "center",
     bottom: 55,
+    borderRadius: 25
   },
 });

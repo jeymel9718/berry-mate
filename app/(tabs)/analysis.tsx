@@ -4,11 +4,15 @@ import { SectionButton } from "@/components/SectionButton";
 import { windowHeight, windowWidth } from "@/constants/Dimensions";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { BarGroup, CartesianChart } from "victory-native";
+import { Text } from "react-native-paper";
+import { BarGroup, CartesianChart, Pie, PolarChart } from "victory-native";
 import { useFont } from "@shopify/react-native-skia";
 
 import roboto from "@/assets/fonts/Roboto-Regular.ttf";
 import italicRoboto from "@/assets/fonts/Roboto-Italic.ttf";
+import { IncomeExpense } from "@/components/analysis/IncomeExpense";
+import React from "react";
+import { PieLabel } from "@/components/analysis/PieLabel";
 
 const data = [
   { day: "Mon", income: 5000, expenses: 2000 },
@@ -18,6 +22,14 @@ const data = [
   { day: "Fri", income: 8000, expenses: 3500 },
   { day: "Sat", income: 2000, expenses: 1000 },
   { day: "Sun", income: 7000, expenses: 3000 },
+];
+
+const pieData = [
+  { x: "Rent", y: 25, color: "blue" },
+  { x: "Groceries", y: 15, color: "purple" },
+  { x: "Entertainment", y: 20, color: "green" },
+  { x: "Utilities", y: 10, color: "red" },
+  { x: "Transport", y: 30, color: "yellow" },
 ];
 
 export default function AnalysisScreen() {
@@ -72,6 +84,37 @@ export default function AnalysisScreen() {
             )}
           </CartesianChart>
         </View>
+        <IncomeExpense income="" expense="" />
+      </View>
+      <Text variant="titleSmall">Top Categories</Text>
+      <View style={styles.chartContainer}>
+        <PolarChart data={pieData} labelKey="x" valueKey="y" colorKey="color">
+          <Pie.Chart>
+            {({ slice }) => {
+              return (
+                <>
+                  <Pie.Slice>
+                    <Pie.Label font={font} color={"black"}>
+                      {(position) => (
+                        <PieLabel
+                          position={position}
+                          slice={slice}
+                          font={font}
+                        />
+                      )}
+                    </Pie.Label>
+                  </Pie.Slice>
+                  <Pie.SliceAngularInset
+                    angularInset={{
+                      angularStrokeWidth: 2,
+                      angularStrokeColor: "white",
+                    }}
+                  />
+                </>
+              );
+            }}
+          </Pie.Chart>
+        </PolarChart>
       </View>
     </ParallaxScrollView>
   );
@@ -79,7 +122,8 @@ export default function AnalysisScreen() {
 
 const styles = StyleSheet.create({
   mainChartCtn: {
-    gap: 10
+    gap: 10,
+    marginBottom: 12,
   },
   chartContainer: {
     height: windowHeight * 0.22,

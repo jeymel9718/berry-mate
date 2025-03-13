@@ -15,6 +15,7 @@ import { Button, Icon, Text } from "react-native-paper";
 export default function MoreScreen() {
   const { savings } = useLocalSearchParams<{ savings: string }>();
   const [categoryName, setCategoryName] = useState<string>("");
+  const [target, setTarget] = useState<string>("");
   const [selectedIcon, setSelectedIcon] = useState<string>("");
 
   const renderIconItem = (item: IconItem) => {
@@ -45,6 +46,13 @@ export default function MoreScreen() {
           placeholder="Category Name"
           value={categoryName}
           onChangeText={setCategoryName}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Category Target"
+          inputMode="decimal"
+          value={target}
+          onChangeText={setTarget}
         />
         <Text style={styles.subtitle}>Select an Icon</Text>
         <FlatList

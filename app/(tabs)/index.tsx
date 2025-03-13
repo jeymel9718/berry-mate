@@ -57,18 +57,6 @@ export default function IndexScreen() {
           balance={120}
           iconName="food-outline"
         />
-        <TopCategory
-          categoryName="Groceries"
-          budget={300}
-          balance={120}
-          iconName="food-outline"
-        />
-        <TopCategory
-          categoryName="Groceries"
-          budget={300}
-          balance={120}
-          iconName="food-outline"
-        />
       </Card>
       <View style={{ marginTop: 20, gap: 5 }}>
         <Transaction

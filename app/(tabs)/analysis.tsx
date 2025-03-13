@@ -4,7 +4,7 @@ import { SectionButton } from "@/components/SectionButton";
 import { windowHeight, windowWidth } from "@/constants/Dimensions";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { Text } from "react-native-paper";
+import { Surface, Text } from "react-native-paper";
 import { BarGroup, CartesianChart, Pie, PolarChart } from "victory-native";
 import { useFont } from "@shopify/react-native-skia";
 
@@ -13,6 +13,7 @@ import italicRoboto from "@/assets/fonts/Roboto-Italic.ttf";
 import { IncomeExpense } from "@/components/analysis/IncomeExpense";
 import React from "react";
 import { PieLabel } from "@/components/analysis/PieLabel";
+import { PieTags } from "@/components/analysis/PieTags";
 
 const data = [
   { day: "Mon", income: 5000, expenses: 2000 },
@@ -61,32 +62,35 @@ export default function AnalysisScreen() {
           segments={segments}
           onValueChange={(value: string) => setSelectedSegment(value)}
         />
-        <View style={styles.chartContainer}>
-          <CartesianChart
-            data={data}
-            xKey="day"
-            yKeys={["income", "expenses"]}
-            domainPadding={{ left: 20, right: 20 }}
-            padding={{ bottom: 8, left: 8, right: 8 }}
-            xAxis={{ font: font, lineColor: "transparent" }}
-            yAxis={[{ font: yFont, formatYLabel: (t) => `${t / 1000}k` }]}
-          >
-            {({ points, chartBounds }) => (
-              <BarGroup
-                chartBounds={chartBounds}
-                betweenGroupPadding={0.5}
-                withinGroupPadding={0.3}
-                roundedCorners={{ topLeft: 10, topRight: 10 }}
-              >
-                <BarGroup.Bar points={points.income} color="green" />
-                <BarGroup.Bar points={points.expenses} color="blue" />
-              </BarGroup>
-            )}
-          </CartesianChart>
-        </View>
+        <Surface style={styles.incomesContainer}>
+          <Text variant="titleSmall">Incomes & Expenses</Text>
+          <View style={styles.chartContainer}>
+            <CartesianChart
+              data={data}
+              xKey="day"
+              yKeys={["income", "expenses"]}
+              domainPadding={{ left: 20, right: 20 }}
+              padding={{ bottom: 8, left: 8, right: 8 }}
+              xAxis={{ font: font, lineColor: "transparent" }}
+              yAxis={[{ font: yFont, formatYLabel: (t) => `${t / 1000}k` }]}
+            >
+              {({ points, chartBounds }) => (
+                <BarGroup
+                  chartBounds={chartBounds}
+                  betweenGroupPadding={0.5}
+                  withinGroupPadding={0.3}
+                  roundedCorners={{ topLeft: 10, topRight: 10 }}
+                >
+                  <BarGroup.Bar points={points.income} color="green" />
+                  <BarGroup.Bar points={points.expenses} color="blue" />
+                </BarGroup>
+              )}
+            </CartesianChart>
+          </View>
+        </Surface>
         <IncomeExpense income="" expense="" />
       </View>
-      <Text variant="titleSmall">Top Categories</Text>
+      <Text variant="titleMedium">Top Categories</Text>
       <View style={styles.chartContainer}>
         <PolarChart data={pieData} labelKey="x" valueKey="y" colorKey="color">
           <Pie.Chart>
@@ -116,6 +120,7 @@ export default function AnalysisScreen() {
           </Pie.Chart>
         </PolarChart>
       </View>
+      <PieTags data={pieData} />
     </ParallaxScrollView>
   );
 }
@@ -124,6 +129,12 @@ const styles = StyleSheet.create({
   mainChartCtn: {
     gap: 10,
     marginBottom: 12,
+  },
+  incomesContainer: {
+    backgroundColor: "#DFF7E2",
+    gap: 2,
+    padding: 8,
+    borderRadius: 15,
   },
   chartContainer: {
     height: windowHeight * 0.22,

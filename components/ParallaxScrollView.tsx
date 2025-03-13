@@ -85,6 +85,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderTopRightRadius: 20,
     borderTopLeftRadius: 20,
-    minHeight: windowHeight*0.59
+    minHeight: windowHeight*0.64
   },
 });

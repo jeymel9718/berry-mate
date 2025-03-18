@@ -1,7 +1,9 @@
 import { IconCategories } from "@/constants/Categories";
 import { windowHeight } from "@/constants/Dimensions";
 import { IconItem } from "@/constants/Types";
-import { useLocalSearchParams } from "expo-router";
+import { createCategory } from "@/db/categories";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
 import {
   TouchableOpacity,
@@ -13,6 +15,8 @@ import {
 import { Button, Icon, Text } from "react-native-paper";
 
 export default function MoreScreen() {
+  const db = useSQLiteContext();
+  const router = useRouter();
   const { savings } = useLocalSearchParams<{ savings: string }>();
   const [categoryName, setCategoryName] = useState<string>("");
   const [target, setTarget] = useState<string>("");
@@ -35,6 +39,15 @@ export default function MoreScreen() {
         />
       </TouchableOpacity>
     );
+  };
+
+  const onSave = () => {
+    if (savings === "true") {
+      // Add new savings
+    } else {
+      createCategory(db, {id: 0, name: categoryName, target: Number(target), icon: selectedIcon});
+      router.back();
+    }
   };
 
   return (
@@ -63,7 +76,7 @@ export default function MoreScreen() {
           numColumns={3}
           contentContainerStyle={styles.grid}
         />
-        <Button mode="contained" style={styles.button}>Create</Button>
+        <Button mode="contained" style={styles.button} onPress={onSave}>Create</Button>
       </View>
     </View>
   );

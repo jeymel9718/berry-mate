@@ -12,6 +12,8 @@ import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { PreferencesProvider } from "@/contexts/Preferences";
+import { SQLiteProvider } from "expo-sqlite";
+import { migrateDbIfNeeded } from "@/db/db";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -39,10 +41,12 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <PaperProvider theme={paperTheme}>
         <PreferencesProvider>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
+          <SQLiteProvider databaseName="berry-mate.db" onInit={migrateDbIfNeeded}>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+          </SQLiteProvider>
         </PreferencesProvider>
       </PaperProvider>
     </ThemeProvider>

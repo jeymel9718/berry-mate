@@ -1,21 +1,47 @@
 import { windowWidth } from "@/constants/Dimensions";
+import { categoryDB } from "@/db/services/categories";
 import { Link } from "expo-router";
-import { Pressable, StyleSheet, View } from "react-native";
-import { Icon, Text } from "react-native-paper";
+import { useSQLiteContext } from "expo-sqlite";
+import { useState } from "react";
+import { GestureResponderEvent, Pressable, StyleSheet, View } from "react-native";
+import { Icon, Menu, Text } from "react-native-paper";
 
 export type CategoryProps = {
+  id: number;
   name: string;
   iconName: string;
 };
 
-export function Category({ name, iconName }: CategoryProps) {
+type ContextualMenuCoord = { x: number; y: number };
+
+export function Category({ name, iconName, id }: CategoryProps) {
+  const [menuVisible, setMenuVisible] = useState<boolean>(false);
+  const [contextualMenuCoord, setContextualMenuCoor] = useState<ContextualMenuCoord>({ x: 0, y: 0 });
+  const db = useSQLiteContext();
+
+  const _handleLongPress = (event: GestureResponderEvent) => {
+    const { nativeEvent } = event;
+    setContextualMenuCoor({
+      x: nativeEvent.pageX,
+      y: nativeEvent.pageY,
+    });
+    setMenuVisible(true);
+  };
+
+  const deleteCategory = async () => {
+    await categoryDB.deleteCategory(db, id);
+  }
+
   return (
     <View style={styles.container}>
       <Link href={`/categories/${name}`} asChild>
-        <Pressable style={styles.iconContainer}>
+        <Pressable style={styles.iconContainer} onLongPress={_handleLongPress}>
           <Icon source={iconName} size={windowWidth * 0.18} color="white" />
         </Pressable>
       </Link>
+      <Menu anchor={contextualMenuCoord} visible={menuVisible} onDismiss={() => setMenuVisible(false)}>
+        <Menu.Item onPress={deleteCategory} title="Delete" leadingIcon="delete"/>
+      </Menu>
       <Text variant="labelLarge">{name}</Text>
     </View>
   );

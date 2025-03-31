@@ -1,7 +1,7 @@
 import { IconCategories } from "@/constants/Categories";
 import { windowHeight } from "@/constants/Dimensions";
 import { IconItem } from "@/constants/Types";
-import { createCategory } from "@/db/categories";
+import { categoryDB } from "@/db/services/categories";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
@@ -45,7 +45,7 @@ export default function MoreScreen() {
     if (savings === "true") {
       // Add new savings
     } else {
-      createCategory(db, {id: 0, name: categoryName, target: Number(target), icon: selectedIcon});
+      categoryDB.createCategory(db, {id: 0, name: categoryName, target: Number(target), icon: selectedIcon});
       router.back();
     }
   };

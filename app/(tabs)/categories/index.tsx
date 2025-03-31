@@ -3,32 +3,32 @@ import { Category } from "@/components/categories/Category";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { DefaultCategories } from "@/constants/Categories";
 import { usePreferences } from "@/contexts/Preferences";
-import { getCategories, Category as CategoryType } from "@/db/categories";
+import { Category as CategoryType, categoryDB } from "@/db/services/categories";
 import { generateSubarrays } from "@/utils/utils";
 import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useContext, useEffect, useState } from "react";
-import { FlatList, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 export default function CategoriesScreen() {
   const preferences = usePreferences();
   const db = useSQLiteContext();
   const [categories, setCategories] = useState<CategoryType[][]>([]);
-  
+
   useFocusEffect(() => {
     preferences.hideFab();
   });
 
   useEffect(() => {
-    const getData = async () => {
-      const dbData = await getCategories(db);
-      dbData.push({id: -1, name: "savings", icon: "piggy-bank", target: 0 });
-      dbData.push({id: -1, name: "More", icon: "plus", target: 0 });
+    const deferFunc = categoryDB.onCategories(db, (value) => {
+      const data = generateSubarrays(value, 3);
+      setCategories(data);
+    });
 
-      setCategories(generateSubarrays(dbData, 3))
-    }
-    getData();
-  }, []);
+    return () => {
+      deferFunc();
+    };
+  });
 
   return (
     <ParallaxScrollView
@@ -50,7 +50,12 @@ export default function CategoriesScreen() {
         return (
           <View key={index} style={styles.rowContainer}>
             {arr.map((cat, i) => (
-              <Category key={i} name={cat.name} iconName={cat.icon} />
+              <Category
+                key={i}
+                name={cat.name}
+                iconName={cat.icon}
+                id={cat.id}
+              />
             ))}
           </View>
         );

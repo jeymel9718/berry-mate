@@ -39,12 +39,12 @@ export default function SavingsScreen() {
         return (
           <View key={index} style={styles.rowContainer}>
             {arr.map((cat, i) => (
-              <Saving key={i} name={cat.name} iconName={cat.iconName} />
+              <Saving key={i} name={cat.name} iconName={cat.iconName} id={i}/>
             ))}
           </View>
         );
       })}
-      <Link asChild href="/categories/More?savings=true">
+      <Link asChild href="/categories/more?savings=true">
         <Button mode="contained" style={styles.button}>
           Add Saving
         </Button>

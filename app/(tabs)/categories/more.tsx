@@ -45,7 +45,7 @@ export default function MoreScreen() {
     if (savings === "true") {
       // Add new savings
     } else {
-      categoryDB.createCategory(db, {id: 0, name: categoryName, target: Number(target), icon: selectedIcon});
+      categoryDB.createCategory(db, {id: 0, name: categoryName, target: Number(target), icon: selectedIcon, static: false});
       router.back();
     }
   };

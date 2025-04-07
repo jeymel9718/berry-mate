@@ -12,6 +12,8 @@ import { BalanceState } from "@/constants/Types";
 import { useContext, useEffect, useReducer } from "react";
 import { usePreferences } from "@/contexts/Preferences";
 import { useFocusEffect } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
+import { transactionDB } from "@/db/services/transaction";
 
 
 function reducer(state: BalanceState, action: BalanceActions) {
@@ -30,6 +32,7 @@ function reducer(state: BalanceState, action: BalanceActions) {
 }
 
 export default function TransactionScreen() {
+  const db = useSQLiteContext();
   const [state, dispatch] = useReducer(reducer, {income: false, expense: false});
   const preferences = usePreferences();
   
@@ -39,6 +42,12 @@ export default function TransactionScreen() {
     return () => preferences.hideFab();
   });
   
+  useEffect(() => {
+    transactionDB.listTransactions(db).then((transactions) => {
+      console.info(transactions)
+    })
+  }, [])
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}

@@ -21,6 +21,13 @@ export default function CategoriesScreen() {
 
   useEffect(() => {
     const deferFunc = categoryDB.onCategories(db, (value) => {
+      value.push({
+        id: -1,
+        name: "more",
+        icon: "plus",
+        target: 0,
+        static: true,
+      });
       const data = generateSubarrays(value, 3);
       setCategories(data);
     });
@@ -55,6 +62,7 @@ export default function CategoriesScreen() {
                 name={cat.name}
                 iconName={cat.icon}
                 id={cat.id}
+                disabled={cat.static}
               />
             ))}
           </View>

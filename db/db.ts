@@ -15,11 +15,13 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         icon TEXT,
-        target REAL
+        target REAL,
+        static BOOL DEFAULT FALSE
       );
   
   CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
         date TEXT NOT NULL,          -- ISO formatted date string
         amount REAL NOT NULL,
         type TEXT NOT NULL,          -- 'expense' or 'income'
@@ -52,6 +54,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
   INSERT INTO categories (name, icon, target) VALUES ('Transport', 'car-outline', 4000);
   INSERT INTO categories (name, icon, target) VALUES ('Groceries', 'store-outline', 4000);
   INSERT INTO categories (name, icon, target) VALUES ('Rent', 'home-city-outline', 4000);
+  INSERT INTO categories (name, icon, target, static) VALUES ('savings', 'piggy-bank', 0, TRUE);
   `);
 
     currentDbVersion = 1;

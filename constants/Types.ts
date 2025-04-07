@@ -5,10 +5,10 @@ export type BalanceState = {
   income: boolean;
 };
 
-export type Category = {
+export type SimpleCategory = {
+  id: number,
   name: string;
-  iconName: string;
-};
+}
 
 export type Expense = {
   date: Date;

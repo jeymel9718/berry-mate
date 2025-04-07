@@ -2,9 +2,13 @@ import { windowWidth } from "@/constants/Dimensions";
 import { Link } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Icon, Text } from "react-native-paper";
-import { CategoryProps } from "../categories/Category";
 
-export function Saving({ name, iconName }: CategoryProps) {
+export type SavingProps = {
+  name: string;
+  iconName: string;
+}
+
+export function Saving({ name, iconName }: SavingProps) {
   return (
     <View style={styles.container}>
       <Link href={`/categories/savings/${name}`} asChild>

@@ -1,3 +1,4 @@
+import { SimpleCategory } from "@/constants/Types";
 import { SQLiteDatabase } from "expo-sqlite";
 import { NativeEventEmitter, NativeModules } from 'react-native';
 
@@ -6,6 +7,7 @@ export type Category = {
   name: string;
   icon: string;
   target: number;
+  static: boolean;
 };
 
 class CategoryService {
@@ -36,9 +38,17 @@ class CategoryService {
     );
     this.eventEmitter.emit("categoryChanged");
   }
+  
+  async getSimpleCategories(db: SQLiteDatabase): Promise<SimpleCategory[]> {
+    return await db.getAllAsync("SELECT id, name, static FROM categories WHERE static = 0");
+  }
 
   async getCategories(db: SQLiteDatabase): Promise<Category[]> {
     return await db.getAllAsync("SELECT * FROM categories");
+  }
+
+  async getCategoryByName(db: SQLiteDatabase, name: string): Promise<Category | null> {
+    return await db.getFirstAsync("SELECT * FROM categories WHERE name = ?", name);
   }
 
   onCategories(db: SQLiteDatabase, callback: (categories: Category[]) => void) {

@@ -1,20 +1,30 @@
 import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { Expense } from "@/constants/Types";
+import { BalanceActions } from "@/constants/Enums";
+import { Expense, SimpleCategory } from "@/constants/Types";
+import { categoryDB } from "@/db/services/categories";
+import { Transaction, transactionDB } from "@/db/services/transaction";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
-import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
+import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, Text, TextInput, useTheme } from "react-native-paper";
 
 export default function ExpenseScreen() {
+  const db = useSQLiteContext();
+  const router = useRouter();
   const { category } = useLocalSearchParams<{ category: string }>();
   const theme = useTheme();
-  const [expense, setExpense] = useState<Expense>({
+  const [categories, setCategories] = useState<SimpleCategory[]>([]);
+  const [amount, setAmount] = useState<string>("");
+  const [expense, setExpense] = useState<Transaction>({
+    id: -1,
     date: new Date(),
-    category: category ? category : "",
-    amount: "",
+    category_id: category ? +category : 0,
+    amount: 0,
     title: "",
+    type: BalanceActions.EXPENSE,
   });
 
   const onChange = (event: any, selectedDate: any) => {
@@ -30,6 +40,20 @@ export default function ExpenseScreen() {
       is24Hour: true,
     });
   };
+
+  const onSave = async () => {
+    await transactionDB.saveTransaction(db, {...expense, amount: Number(amount)});
+    router.back();
+  }
+
+  useEffect(() => {
+    async function loadCategories() {
+      const dbData = await categoryDB.getSimpleCategories(db);
+      setCategories(dbData);
+    }
+
+    loadCategories();
+  }, []);
 
   return (
     <ParallaxScrollView
@@ -72,12 +96,16 @@ export default function ExpenseScreen() {
         <View style={[styles.picker, { borderColor: theme.colors.primary }]}>
           <Picker
             enabled={category ? false : true}
-            selectedValue={expense.category}
-            onValueChange={(v) => setExpense({ ...expense, category: v })}
+            selectedValue={expense.category_id}
+            onValueChange={(v) => setExpense({ ...expense, category_id: v })}
           >
-            <Picker.Item label="Food" value="food" />
-            <Picker.Item label="Transportation" value="transportation" />
-            <Picker.Item label="Groceries" value="groceries" />
+            {categories.map((category, i) => (
+              <Picker.Item
+                key={i}
+                label={category.name}
+                value={category.id}
+              />
+            ))}
           </Picker>
         </View>
       </View>
@@ -90,14 +118,14 @@ export default function ExpenseScreen() {
           theme={{
             roundness: 50,
           }}
-          value={expense.amount}
-          onChangeText={(amount) => setExpense({ ...expense, amount })}
+          value={amount}
+          onChangeText={(amount) => setAmount(amount)}
           inputMode="decimal"
           placeholder={"Amount"}
           left={<TextInput.Icon icon="currency-usd" />}
         />
       </View>
-      <Button mode="contained" uppercase>
+      <Button mode="contained" uppercase onPress={onSave}>
         Save
       </Button>
     </ParallaxScrollView>

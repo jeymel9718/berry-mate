@@ -5,7 +5,7 @@ import { BalanceActions } from "@/constants/Enums";
 export type Transaction = {
   id: number;
   title: string;
-  date: Date;
+  date: string;
   amount: number;
   type: BalanceActions;
   category_id: number;
@@ -31,7 +31,7 @@ class TransactionService {
   async saveTransaction(db: SQLiteDatabase, transaction: Transaction) {
     const data = {
       $title: transaction.title,
-      $date: transaction.date.toISOString(),
+      $date: transaction.date,
       $amount: transaction.amount,
       $type: transaction.type,
       $category_id: transaction.category_id,

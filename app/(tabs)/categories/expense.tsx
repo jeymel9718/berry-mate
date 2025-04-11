@@ -17,10 +17,11 @@ export default function ExpenseScreen() {
   const { category } = useLocalSearchParams<{ category: string }>();
   const theme = useTheme();
   const [categories, setCategories] = useState<SimpleCategory[]>([]);
+  const [expenseDate, setExpenseData] = useState<Date>(new Date());
   const [amount, setAmount] = useState<string>("");
   const [expense, setExpense] = useState<Transaction>({
     id: -1,
-    date: new Date(),
+    date: "",
     category_id: category ? +category : 0,
     amount: 0,
     title: "",
@@ -29,12 +30,12 @@ export default function ExpenseScreen() {
 
   const onChange = (event: any, selectedDate: any) => {
     const currentDate = selectedDate;
-    setExpense({ ...expense, date: currentDate });
+    setExpenseData(currentDate);
   };
 
   const showMode = () => {
     DateTimePickerAndroid.open({
-      value: expense.date,
+      value: expenseDate,
       onChange,
       mode: "date",
       is24Hour: true,
@@ -84,7 +85,7 @@ export default function ExpenseScreen() {
           theme={{
             roundness: 50,
           }}
-          value={expense.date.toDateString()}
+          value={expenseDate.toDateString()}
           placeholder={"Date"}
           right={<TextInput.Icon icon="calendar" onPress={showMode} />}
         />

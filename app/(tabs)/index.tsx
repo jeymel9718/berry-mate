@@ -35,7 +35,11 @@ export default function IndexScreen() {
             {
               icon: "bank-transfer-in",
               label: "Add Income",
-              onPress: () => console.log("Income"),
+              onPress: () =>
+                navigation.navigate("categories", {
+                  screen: "income",
+                  initial: false,
+                }),
             },
             {
               icon: "bank-transfer-out",

@@ -50,6 +50,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
   );
 
   INSERT INTO user_config (key, value) VALUES ('currency', 'USD');
+  INSERT INTO categories (name, icon, target, static) VALUES ('Incomes', 'cash-multiple', 4000, TRUE);
   INSERT INTO categories (name, icon, target) VALUES ('Food', 'silverware-variant', 4000);
   INSERT INTO categories (name, icon, target) VALUES ('Transport', 'car-outline', 4000);
   INSERT INTO categories (name, icon, target) VALUES ('Groceries', 'store-outline', 4000);

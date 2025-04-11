@@ -1,11 +1,13 @@
 import { BalanceHeader } from "@/components/BalanceHeader";
 import { Transaction } from "@/components/categories/Transaction";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { windowWidth } from "@/constants/Dimensions";
 import { Category, categoryDB } from "@/db/services/categories";
 import {
   Transaction as TransactionType,
   transactionDB,
 } from "@/db/services/transaction";
+import { formatTransactionDate } from "@/utils/utils";
 import {
   useFocusEffect,
   useLocalSearchParams,
@@ -42,32 +44,29 @@ export default function CategoryScreen() {
 
   useEffect(() => {
     let deferFunc = () => {};
-    categoryDB
-      .getCategoryByName(db, category)
-      .then((dbData) => {
-        if (dbData) {
-          setdbCategory(dbData);
-          deferFunc = transactionDB.onCategoryTransactions(
-            db,
-            dbData.id,
-            (transactions) => {
-              const groupedTransactions: {
-                [month: string]: TransactionType[];
-              } = {};
-              transactions.map((transaction) => {
-                const month = transaction.month ?? "";
-                if (groupedTransactions[month]) {
-                  groupedTransactions[month].push(transaction);
-                } else {
-                  groupedTransactions[month] = [transaction];
-                }
-              });
-              console.info(category, groupedTransactions)
-              setTransactions(groupedTransactions);
-            }
-          );
-        }
-      })
+    categoryDB.getCategoryByName(db, category).then((dbData) => {
+      if (dbData) {
+        setdbCategory(dbData);
+        deferFunc = transactionDB.onCategoryTransactions(
+          db,
+          dbData.id,
+          (transactions) => {
+            const groupedTransactions: {
+              [month: string]: TransactionType[];
+            } = {};
+            transactions.map((transaction) => {
+              const month = transaction.month ?? "";
+              if (groupedTransactions[month]) {
+                groupedTransactions[month].push(transaction);
+              } else {
+                groupedTransactions[month] = [transaction];
+              }
+            });
+            setTransactions(groupedTransactions);
+          }
+        );
+      }
+    });
     return () => {
       deferFunc();
     };
@@ -78,6 +77,15 @@ export default function CategoryScreen() {
       title: category,
     });
   }, [navigation]);
+
+  const handleAdd = () => {
+    if (category === "Incomes") {
+      router.push(`/categories/income`);
+    } else {
+      router.push(`/categories/expense?category=${dbCategory.id}`);
+    }
+  }
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
@@ -96,13 +104,11 @@ export default function CategoryScreen() {
     >
       <Portal>
         <FAB
-          label="Add Expenses"
+          label={category === "Incomes" ? "Add Incomes": "Add Expenses"}
           style={styles.addFab}
-          customSize={35}
+          customSize={38}
           visible={visible}
-          onPress={() => {
-            router.push(`/categories/expense?category=${dbCategory.id}`);
-          }}
+          onPress={handleAdd}
         />
       </Portal>
       <IconButton
@@ -118,7 +124,7 @@ export default function CategoryScreen() {
             <Transaction
               key={transaction.id}
               iconName={dbCategory.icon}
-              date={"April 30"}
+              date={formatTransactionDate(transaction.date)}
               name={transaction.title}
               value={transaction.amount}
             />
@@ -138,6 +144,8 @@ const styles = StyleSheet.create({
   addFab: {
     position: "absolute",
     alignSelf: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     bottom: 55,
   },
 });

@@ -33,3 +33,10 @@ export type IconItem = {
   id: string
   name: string;
 };
+
+export type Saving = {
+  id: number;
+  target: number;
+  name: string;
+  icon: string;
+};

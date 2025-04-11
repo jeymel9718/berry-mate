@@ -1,6 +1,6 @@
 import { windowWidth } from "@/constants/Dimensions";
 import { categoryDB } from "@/db/services/categories";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
 import {
@@ -25,6 +25,7 @@ function capitalizeFirstLetter(str: string): string {
 }
 
 export function Category({ name, iconName, id, disabled }: CategoryProps) {
+  const router = useRouter();
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
   const [contextualMenuCoord, setContextualMenuCoor] =
     useState<ContextualMenuCoord>({ x: 0, y: 0 });
@@ -41,11 +42,17 @@ export function Category({ name, iconName, id, disabled }: CategoryProps) {
 
   const deleteCategory = async () => {
     await categoryDB.deleteCategory(db, id);
+    setMenuVisible(false);
+  };
+
+  const editCategory = () => {
+    router.navigate(`/categories/edit?id=${id}`);
+    setMenuVisible(false);
   };
 
   return (
     <View style={styles.container}>
-      <Link href={`/categories/${name}`} asChild>
+      <Link href={`/categories/${name}?id=${id}`} asChild>
         <Pressable
           style={styles.iconContainer}
           onLongPress={disabled ? undefined : _handleLongPress}
@@ -58,6 +65,11 @@ export function Category({ name, iconName, id, disabled }: CategoryProps) {
         visible={menuVisible}
         onDismiss={() => setMenuVisible(false)}
       >
+        <Menu.Item
+          onPress={editCategory}
+          title="Edit"
+          leadingIcon="note-edit"
+        />
         <Menu.Item
           onPress={deleteCategory}
           title="Delete"

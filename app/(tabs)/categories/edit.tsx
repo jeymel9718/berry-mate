@@ -1,36 +1,42 @@
 import { CategoryForm } from "@/components/categories/CategoryForm";
-import { IconCategories } from "@/constants/Categories";
 import { windowHeight } from "@/constants/Dimensions";
 import { categoryDB } from "@/db/services/categories";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
-import { useState } from "react";
-import {
-  TouchableOpacity,
-  StyleSheet,
-  View,
-  TextInput,
-  FlatList,
-} from "react-native";
-import { Button, Icon, Text } from "react-native-paper";
+import { useEffect, useState } from "react";
+import { View, StyleSheet } from "react-native";
 
-export default function MoreScreen() {
+export default function EditScreen() {
   const db = useSQLiteContext();
-  const router = useRouter();
-  const { savings } = useLocalSearchParams<{ savings: string }>();
+  const { savings, id } = useLocalSearchParams<{
+    savings: string;
+    id: string;
+  }>();
   const [categoryName, setCategoryName] = useState<string>("");
   const [target, setTarget] = useState<string>("");
   const [selectedIcon, setSelectedIcon] = useState<string>("");
 
-  const onSave = () => {
+  useEffect(() => {
     if (savings === "true") {
-      // Add new savings
     } else {
-      categoryDB.createCategory(db, {
-        id: 0,
+      categoryDB.getCategory(db, id).then((category) => {
+        if (category) {
+          setCategoryName(category.name);
+          setTarget(category.target.toString());
+          setSelectedIcon(category.icon);
+        }
+      });
+    }
+  }, []);
+
+  const onSave = async () => {
+    if (savings === "true") {
+    } else {
+      await categoryDB.updateCategory(db, {
+        id: +id,
         name: categoryName,
-        target: Number(target),
         icon: selectedIcon,
+        target: Number(target),
         static: false,
       });
       router.back();
@@ -49,7 +55,7 @@ export default function MoreScreen() {
           setTarget={setTarget}
           setIcon={setSelectedIcon}
           onSave={onSave}
-          style={{height: windowHeight*0.78}}
+          style={{ height: windowHeight * 0.78 }}
         />
       </View>
     </View>
@@ -71,39 +77,5 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     backgroundColor: "white",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "600",
-    marginBottom: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 30,
-    padding: 10,
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  grid: {
-    marginBottom: 16,
-  },
-  iconContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    margin: 8,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-  },
-  selectedIconContainer: {
-    backgroundColor: "#e0f7fa",
-    borderColor: "#007BFF",
   },
 });

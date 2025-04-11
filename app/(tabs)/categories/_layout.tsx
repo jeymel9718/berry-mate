@@ -13,7 +13,8 @@ export default function CategoriesLayout() {
       <Stack.Screen name="expense" options={{title: "Add Expense"}} />
       <Stack.Screen name="income" options={{title: "Add Income"}} />
       <Stack.Screen name="savings" options={{ headerShown: false }}/>
-      <Stack.Screen name="more" options={{title: "Add New Category"}} />
+      <Stack.Screen name="more" options={{title: "Add New Category", presentation: "modal"}} />
+      <Stack.Screen name="edit" options={{title: "Edit Category", presentation: "modal"}} />
     </Stack>
   );
 }

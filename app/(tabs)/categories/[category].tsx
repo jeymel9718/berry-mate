@@ -20,7 +20,7 @@ import { StyleSheet, View } from "react-native";
 import { FAB, IconButton, List, Portal } from "react-native-paper";
 
 export default function CategoryScreen() {
-  const { category } = useLocalSearchParams<{ category: string }>();
+  const { category, id } = useLocalSearchParams<{ category: string, id: string }>();
   const db = useSQLiteContext();
   const [visible, setVisible] = useState<boolean>();
   const [dbCategory, setdbCategory] = useState<Category>({
@@ -44,7 +44,7 @@ export default function CategoryScreen() {
 
   useEffect(() => {
     let deferFunc = () => {};
-    categoryDB.getCategoryByName(db, category).then((dbData) => {
+    categoryDB.getCategory(db, id).then((dbData) => {
       if (dbData) {
         setdbCategory(dbData);
         deferFunc = transactionDB.onCategoryTransactions(

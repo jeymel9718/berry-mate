@@ -2,6 +2,7 @@ import { CategoryForm } from "@/components/categories/CategoryForm";
 import { IconCategories } from "@/constants/Categories";
 import { windowHeight } from "@/constants/Dimensions";
 import { categoryDB } from "@/db/services/categories";
+import { savingDb } from "@/db/services/savings";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
@@ -24,7 +25,13 @@ export default function MoreScreen() {
 
   const onSave = () => {
     if (savings === "true") {
-      // Add new savings
+      savingDb.createSaving(db, {
+        id: 0,
+        name: categoryName,
+        target: Number(target),
+        icon: selectedIcon,
+      });
+      router.back();
     } else {
       categoryDB.createCategory(db, {
         id: 0,

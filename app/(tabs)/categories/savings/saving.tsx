@@ -1,20 +1,23 @@
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { Expense } from "@/constants/Types";
+import { savingDb } from "@/db/services/savings";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { Button, Text, TextInput, useTheme } from "react-native-paper";
 
 export default function SavingScreen() {
-  const { category } = useLocalSearchParams<{ category?: string }>();
+  const { saving } = useLocalSearchParams<{ saving: string }>();
+  const db = useSQLiteContext();
+  const router = useRouter();
   const theme = useTheme();
-  const [expense, setExpense] = useState<Expense>({
-    date: new Date(),
-    category: category ? category : "",
-    amount: "",
+  const [expense, setExpense] = useState({
     title: "",
+    amount: "",
+    date: new Date(),
   });
 
   const onChange = (event: any, selectedDate: any) => {
@@ -29,6 +32,17 @@ export default function SavingScreen() {
       mode: "date",
       is24Hour: true,
     });
+  };
+
+  const onSave = async () => {
+    await savingDb.createTransaction(db, {
+      id: -1,
+      title: expense.title,
+      amount: Number(expense.amount),
+      date: expense.date.toISOString(),
+      saving_id: +saving,
+    });
+    router.back();
   };
 
   return (
@@ -67,22 +81,6 @@ export default function SavingScreen() {
       </View>
       <View>
         <Text variant="labelLarge" style={styles.label}>
-          Category
-        </Text>
-        <View style={[styles.picker, { borderColor: theme.colors.primary }]}>
-          <Picker
-            enabled={category ? false : true}
-            selectedValue={expense.category}
-            onValueChange={(v) => setExpense({ ...expense, category: v })}
-          >
-            <Picker.Item label="Food" value="food" />
-            <Picker.Item label="Transportation" value="transportation" />
-            <Picker.Item label="Groceries" value="groceries" />
-          </Picker>
-        </View>
-      </View>
-      <View>
-        <Text variant="labelLarge" style={styles.label}>
           Amount
         </Text>
         <TextInput
@@ -97,7 +95,7 @@ export default function SavingScreen() {
           left={<TextInput.Icon icon="currency-usd" />}
         />
       </View>
-      <Button mode="contained" uppercase>
+      <Button mode="contained" uppercase onPress={onSave}>
         Save
       </Button>
     </ParallaxScrollView>

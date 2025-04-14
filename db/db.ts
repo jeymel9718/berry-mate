@@ -38,6 +38,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
   
   CREATE TABLE IF NOT EXISTS transactions_savings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
       date TEXT NOT NULL,
       amount REAL NOT NULL,
       saving_id INTEGER,

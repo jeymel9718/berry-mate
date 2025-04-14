@@ -3,12 +3,16 @@ import CircularProgressBar from "@/components/CircularProgressBar";
 import { ProgressBar } from "@/components/home/ProgressBar";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { windowHeight, windowWidth } from "@/constants/Dimensions";
+import { Saving, SavingTransaction } from "@/constants/Types";
+import { savingDb } from "@/db/services/savings";
+import { formatTransactionDate } from "@/utils/utils";
 import {
   useFocusEffect,
   useLocalSearchParams,
   useNavigation,
   useRouter,
 } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import {
@@ -22,8 +26,18 @@ import {
 } from "react-native-paper";
 
 export default function SaveScreen() {
-  const { save } = useLocalSearchParams<{ save: string }>();
+  const { save, id } = useLocalSearchParams<{ save: string; id: string }>();
+  const db = useSQLiteContext();
   const [visible, setVisible] = useState<boolean>();
+  const [saving, setSaving] = useState<Saving>({
+    id: -1,
+    name: "",
+    icon: "",
+    target: 0,
+  });
+  const [transactions, setTransactions] = useState<{
+    [month: string]: SavingTransaction[];
+  }>({});
   const navigation = useNavigation();
   const router = useRouter();
 
@@ -32,6 +46,32 @@ export default function SaveScreen() {
 
     return () => setVisible(false);
   });
+
+  useEffect(() => {
+    savingDb.getSaving(db, id).then((value) => {
+      if (value) {
+        setSaving(value);
+      }
+    });
+
+    const deferFunc = savingDb.onSavingTransaction(db, Number(id), (values) => {
+      const groupedTransactions: {
+        [month: string]: SavingTransaction[];
+      } = {};
+      values.map((transaction) => {
+        const month = transaction.month ?? "";
+        if (groupedTransactions[month]) {
+          groupedTransactions[month].push(transaction);
+        } else {
+          groupedTransactions[month] = [transaction];
+        }
+      });
+      setTransactions(groupedTransactions);
+    });
+    return () => {
+      deferFunc();
+    };
+  }, []);
 
   useEffect(() => {
     navigation.setOptions({
@@ -52,7 +92,7 @@ export default function SaveScreen() {
           customSize={35}
           visible={visible}
           onPress={() => {
-            router.push(`/categories/savings/saving?category=${save}`);
+            router.push(`/categories/savings/saving?saving=${id}`);
           }}
         />
       </Portal>
@@ -61,7 +101,7 @@ export default function SaveScreen() {
         <View style={styles.goalRowContainer}>
           <View>
             <Text style={styles.goalLabel}>Goal</Text>
-            <Text style={styles.goalAmount}>$1,962.93</Text>
+            <Text style={styles.goalAmount}>${saving.target}</Text>
             <Text style={styles.savedLabel}>Amount Saved</Text>
             <Text style={styles.savedAmount}>$653.31</Text>
           </View>
@@ -72,14 +112,14 @@ export default function SaveScreen() {
               progress={30}
               color="#0068FF"
               backgroundColor="#F1FFF3"
-              iconName={"airplane"}
+              iconName={saving.icon}
             />
             <Text>{save}</Text>
           </Surface>
         </View>
 
         {/* Progress Bar */}
-        <ProgressBar progress={30} amount={1962.93} />
+        <ProgressBar progress={30} amount={saving.target} />
         <Text style={styles.progressText}>
           30% of Your Expenses, Looks Good.
         </Text>
@@ -92,39 +132,20 @@ export default function SaveScreen() {
           onPress={() => console.log("Pressed")}
           style={styles.calendar}
         />
-        <List.Section>
-          <List.Subheader>April</List.Subheader>
-          <Transaction
-            iconName="car-outline"
-            date="April 30"
-            name="Fuel"
-            value={20000}
-          />
-          <Transaction
-            iconName="car-outline"
-            date="April 30"
-            name="Fuel"
-            value={20000}
-          />
-          <Transaction
-            iconName="car-outline"
-            date="April 30"
-            name="Fuel"
-            value={20000}
-          />
-          <Transaction
-            iconName="car-outline"
-            date="April 30"
-            name="Fuel"
-            value={20000}
-          />
-          <Transaction
-            iconName="car-outline"
-            date="April 30"
-            name="Fuel"
-            value={20000}
-          />
-        </List.Section>
+        {Object.keys(transactions).map((key, index) => (
+          <List.Section key={index}>
+            <List.Subheader>{key}</List.Subheader>
+            {transactions[key].map((transaction) => (
+              <Transaction
+                key={transaction.id}
+                iconName={saving.icon}
+                date={formatTransactionDate(transaction.date)}
+                name={transaction.title}
+                value={transaction.amount}
+              />
+            ))}
+          </List.Section>
+        ))}
       </View>
     </ParallaxScrollView>
   );
@@ -197,6 +218,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     alignSelf: "center",
     bottom: 55,
-    borderRadius: 25
+    borderRadius: 25,
   },
 });

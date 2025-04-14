@@ -40,3 +40,12 @@ export type Saving = {
   name: string;
   icon: string;
 };
+
+export type SavingTransaction = {
+  id: number;
+  title: string;
+  date: string;
+  amount: number;
+  saving_id: number;
+  month?: string;
+};

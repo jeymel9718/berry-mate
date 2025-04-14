@@ -1,6 +1,7 @@
 import { CategoryForm } from "@/components/categories/CategoryForm";
 import { windowHeight } from "@/constants/Dimensions";
 import { categoryDB } from "@/db/services/categories";
+import { savingDb } from "@/db/services/savings";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useEffect, useState } from "react";
@@ -18,6 +19,13 @@ export default function EditScreen() {
 
   useEffect(() => {
     if (savings === "true") {
+      savingDb.getSaving(db, id).then((saving) => {
+        if (saving) {
+          setCategoryName(saving.name);
+          setTarget(saving.target.toString());
+          setSelectedIcon(saving.icon);
+        }
+      });
     } else {
       categoryDB.getCategory(db, id).then((category) => {
         if (category) {
@@ -31,6 +39,13 @@ export default function EditScreen() {
 
   const onSave = async () => {
     if (savings === "true") {
+      await savingDb.updateSaving(db, {
+        id: +id,
+        name: categoryName,
+        icon: selectedIcon,
+        target: Number(target),
+      });
+      router.back();
     } else {
       await categoryDB.updateCategory(db, {
         id: +id,

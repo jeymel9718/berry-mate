@@ -1,23 +1,30 @@
 import { BalanceHeader } from "@/components/BalanceHeader";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { Saving } from "@/components/savings/Saving";
+import { Saving as SavingType } from "@/constants/Types";
 import { windowWidth } from "@/constants/Dimensions";
-import { Category as CategoryType } from "@/constants/Types";
 import { generateSubarrays } from "@/utils/utils";
 import { Link } from "expo-router";
+import { useEffect, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { Button } from "react-native-paper";
+import { savingDb } from "@/db/services/savings";
+import { useSQLiteContext } from "expo-sqlite";
 
 export default function SavingsScreen() {
-  const data: CategoryType[][] = generateSubarrays(
-    [
-      { name: "Tavel", iconName: "airplane" },
-      { name: "New House", iconName: "home-outline" },
-      { name: "Car", iconName: "car" },
-      { name: "Wedding", iconName: "ring" },
-    ],
-    3
-  );
+  const [savings, setSavings] = useState<SavingType[][]>([]);
+  const db = useSQLiteContext();
+
+  useEffect(() => {
+    const deferFunc = savingDb.onSavings(db, (savings) => {
+      const data = generateSubarrays(savings, 3);
+      setSavings(data);
+
+      return () => {
+        deferFunc();
+      };
+    });
+  }, []);
 
   return (
     <ParallaxScrollView
@@ -35,11 +42,11 @@ export default function SavingsScreen() {
       }
       headerHeight={220}
     >
-      {data.map((arr, index) => {
+      {savings.map((arr, index) => {
         return (
           <View key={index} style={styles.rowContainer}>
             {arr.map((cat, i) => (
-              <Saving key={i} name={cat.name} iconName={cat.iconName} id={i}/>
+              <Saving key={i} name={cat.name} iconName={cat.icon} id={cat.id}/>
             ))}
           </View>
         );

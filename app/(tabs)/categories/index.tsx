@@ -35,7 +35,7 @@ export default function CategoriesScreen() {
     return () => {
       deferFunc();
     };
-  });
+  }, []);
 
   return (
     <ParallaxScrollView

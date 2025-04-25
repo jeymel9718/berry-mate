@@ -113,6 +113,16 @@ class SavingService {
 
     return () => subscription.remove();
   }
+
+  async getTotalTransactionsAmount(db: SQLiteDatabase, id: number): Promise<null | {total_saved: number}> {
+    return db.getFirstAsync(`
+    SELECT
+      COALESCE(SUM(amount),0) AS total_saved
+    FROM
+      transactions_savings
+    WHERE
+      saving_id = ?;`, id);
+  }
 }
 
 export const savingDb: SavingService = SavingService.getInstance();

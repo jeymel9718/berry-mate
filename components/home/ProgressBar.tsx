@@ -21,7 +21,7 @@ export function ProgressBar({ progress, amount }: ProgressBarProps) {
     progressWidth.value = withTiming(100 - progress, {
       duration: 1000
     });
-  }, []);
+  }, [progress]);
 
   return (
     <Surface style={styles.container}>

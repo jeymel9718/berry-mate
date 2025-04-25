@@ -12,8 +12,8 @@ import {
   useNavigation,
   useRouter,
 } from "expo-router";
-import { useSQLiteContext } from "expo-sqlite";
-import { useEffect, useState } from "react";
+import { SQLiteDatabase, useSQLiteContext } from "expo-sqlite";
+import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import {
   FAB,
@@ -38,8 +38,23 @@ export default function SaveScreen() {
   const [transactions, setTransactions] = useState<{
     [month: string]: SavingTransaction[];
   }>({});
+  const [amount, setAmount] = useState<number>(0);
   const navigation = useNavigation();
   const router = useRouter();
+
+  const savingProgress = useMemo(() => {
+    const rawPct = (amount / saving.target)*100;
+    const clamped = Math.min(Math.max(rawPct, 0), 100);
+    return Math.round(clamped * 100) / 100;
+  }, [amount]);
+
+  // getTransactionsAmount obtain the total amount saved from the transactions
+  async function getTransactionsAmount(id: number) {
+    const dbData = await savingDb.getTotalTransactionsAmount(db, id);
+    if (dbData) {
+      setAmount(dbData.total_saved);
+    }
+  }
 
   useFocusEffect(() => {
     setVisible(true);
@@ -55,6 +70,7 @@ export default function SaveScreen() {
     });
 
     const deferFunc = savingDb.onSavingTransaction(db, Number(id), (values) => {
+      getTransactionsAmount(Number(id));
       const groupedTransactions: {
         [month: string]: SavingTransaction[];
       } = {};
@@ -103,13 +119,13 @@ export default function SaveScreen() {
             <Text style={styles.goalLabel}>Goal</Text>
             <Text style={styles.goalAmount}>${saving.target}</Text>
             <Text style={styles.savedLabel}>Amount Saved</Text>
-            <Text style={styles.savedAmount}>$653.31</Text>
+            <Text style={styles.savedAmount}>${amount}</Text>
           </View>
           <Surface style={styles.iconContainer}>
             <CircularProgressBar
               size={windowWidth * 0.26}
               strokeWidth={4}
-              progress={30}
+              progress={savingProgress}
               color="#0068FF"
               backgroundColor="#F1FFF3"
               iconName={saving.icon}
@@ -119,9 +135,9 @@ export default function SaveScreen() {
         </View>
 
         {/* Progress Bar */}
-        <ProgressBar progress={30} amount={saving.target} />
+        <ProgressBar progress={savingProgress} amount={saving.target} />
         <Text style={styles.progressText}>
-          30% of Your Expenses, Looks Good.
+          {savingProgress}% of Your Expenses, Looks Good.
         </Text>
       </View>
 

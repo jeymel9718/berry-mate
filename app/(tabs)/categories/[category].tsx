@@ -1,6 +1,7 @@
 import { BalanceHeader } from "@/components/BalanceHeader";
 import { Transaction } from "@/components/categories/Transaction";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { RangeDatePicker } from "@/components/RangeDatePicker";
 import { windowWidth } from "@/constants/Dimensions";
 import { Category, categoryDB } from "@/db/services/categories";
 import {
@@ -20,8 +21,14 @@ import { StyleSheet, View } from "react-native";
 import { FAB, IconButton, List, Portal } from "react-native-paper";
 
 export default function CategoryScreen() {
-  const { category, id } = useLocalSearchParams<{ category: string, id: string }>();
+  const { category, id } = useLocalSearchParams<{
+    category: string;
+    id: string;
+  }>();
   const db = useSQLiteContext();
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [visible, setVisible] = useState<boolean>();
   const [dbCategory, setdbCategory] = useState<Category>({
     id: -1,
@@ -43,34 +50,35 @@ export default function CategoryScreen() {
   });
 
   useEffect(() => {
-    let deferFunc = () => {};
     categoryDB.getCategory(db, id).then((dbData) => {
       if (dbData) {
         setdbCategory(dbData);
-        deferFunc = transactionDB.onCategoryTransactions(
-          db,
-          dbData.id,
-          (transactions) => {
-            const groupedTransactions: {
-              [month: string]: TransactionType[];
-            } = {};
-            transactions.map((transaction) => {
-              const month = transaction.month ?? "";
-              if (groupedTransactions[month]) {
-                groupedTransactions[month].push(transaction);
-              } else {
-                groupedTransactions[month] = [transaction];
-              }
-            });
-            setTransactions(groupedTransactions);
-          }
-        );
       }
     });
+  });
+  useEffect(() => {
+    const deferFunc = transactionDB.onCategoryTransactions(
+      db,
+      Number(id),
+      (transactions) => {
+        const groupedTransactions: {
+          [month: string]: TransactionType[];
+        } = {};
+        transactions.map((transaction) => {
+          const month = transaction.month ?? "";
+          if (groupedTransactions[month]) {
+            groupedTransactions[month].push(transaction);
+          } else {
+            groupedTransactions[month] = [transaction];
+          }
+        });
+        setTransactions(groupedTransactions);
+      }
+    );
     return () => {
       deferFunc();
     };
-  }, []);
+  }, [startDate, endDate]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -84,7 +92,28 @@ export default function CategoryScreen() {
     } else {
       router.push(`/categories/expense?category=${dbCategory.id}`);
     }
-  }
+  };
+
+  // onDatePickerCancel is called when the user cancels the date range selection
+  const onDatePickerCancel = () => {
+    setShowDatePicker(false);
+  };
+
+  const onDatePickerClear = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setShowDatePicker(false);
+  };
+
+  // onDatePickerApply is called when the user selects a date range
+  const onDatePickerApply = (range: { startDate: string; endDate: string }) => {
+    setShowDatePicker(false);
+    // Handle the selected date range
+    const start = new Date(range.startDate);
+    const end = new Date(range.endDate);
+    setStartDate(start);
+    setEndDate(end);
+  };
 
   return (
     <ParallaxScrollView
@@ -104,17 +133,23 @@ export default function CategoryScreen() {
     >
       <Portal>
         <FAB
-          label={category === "Incomes" ? "Add Incomes": "Add Expenses"}
+          label={category === "Incomes" ? "Add Incomes" : "Add Expenses"}
           style={styles.addFab}
           customSize={38}
           visible={visible}
           onPress={handleAdd}
         />
       </Portal>
+      <RangeDatePicker
+        visible={showDatePicker}
+        onApply={onDatePickerApply}
+        onCancel={onDatePickerCancel}
+        onClear={onDatePickerClear}
+      />
       <IconButton
         icon="calendar"
         mode="contained"
-        onPress={() => console.log("Pressed")}
+        onPress={() => setShowDatePicker(true)}
         style={styles.calendar}
       />
       {Object.keys(transactions).map((key, index) => (
@@ -144,8 +179,8 @@ const styles = StyleSheet.create({
   addFab: {
     position: "absolute",
     alignSelf: "center",
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     bottom: 55,
   },
 });

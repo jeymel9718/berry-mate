@@ -93,19 +93,56 @@ class SavingService {
     );
   }
 
+  async getSavingTransactionsBetween(
+    db: SQLiteDatabase,
+    savingId: number,
+    startISO: string,
+    endISO: string
+  ): Promise<SavingTransaction[]> {
+    return db.getAllAsync<SavingTransaction>(
+      `
+      SELECT *
+        FROM transactions_savings
+       WHERE saving_id = ?
+         AND date BETWEEN ? AND ?
+       ORDER BY date ASC;
+      `,
+      [savingId, startISO, endISO]
+    );
+  }
+
   onSavingTransaction(
     db: SQLiteDatabase,
     id: number,
-    callback: (transactions: SavingTransaction[]) => void
+    callback: (transactions: SavingTransaction[]) => void,
+    startDate?: Date,
+    endDate?: Date
   ) {
     const loadData = async () => {
-      const dbData = await this.getSavingTransactions(db, id);
+      let dbData: SavingTransaction[];
+
+      if (startDate && endDate) {
+        // --- filter by ISO range ---
+        const startISO = startDate.toISOString();
+        const endISO = endDate.toISOString();
+        dbData = await this.getSavingTransactionsBetween(
+          db,
+          id,
+          startISO,
+          endISO
+        );
+      } else {
+        // --- no dates provided ⇒ fetch all ---
+        dbData = await this.getSavingTransactions(db, id);
+      }
+
       callback(dbData);
     };
 
-    // Initial setUp
+    // Initial load
     loadData();
 
+    // Subscribe to updates
     const subscription = this.eventEmitter.addListener(
       "savingTransaction",
       loadData
@@ -114,14 +151,20 @@ class SavingService {
     return () => subscription.remove();
   }
 
-  async getTotalTransactionsAmount(db: SQLiteDatabase, id: number): Promise<null | {total_saved: number}> {
-    return db.getFirstAsync(`
+  async getTotalTransactionsAmount(
+    db: SQLiteDatabase,
+    id: number
+  ): Promise<null | { total_saved: number }> {
+    return db.getFirstAsync(
+      `
     SELECT
       COALESCE(SUM(amount),0) AS total_saved
     FROM
       transactions_savings
     WHERE
-      saving_id = ?;`, id);
+      saving_id = ?;`,
+      id
+    );
   }
 }
 

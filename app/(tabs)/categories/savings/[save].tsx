@@ -2,6 +2,7 @@ import { Transaction } from "@/components/categories/Transaction";
 import CircularProgressBar from "@/components/CircularProgressBar";
 import { ProgressBar } from "@/components/home/ProgressBar";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { RangeDatePicker } from "@/components/RangeDatePicker";
 import { windowHeight, windowWidth } from "@/constants/Dimensions";
 import { Saving, SavingTransaction } from "@/constants/Types";
 import { savingDb } from "@/db/services/savings";
@@ -27,6 +28,9 @@ import {
 
 export default function SaveScreen() {
   const { save, id } = useLocalSearchParams<{ save: string; id: string }>();
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const db = useSQLiteContext();
   const [visible, setVisible] = useState<boolean>();
   const [saving, setSaving] = useState<Saving>({
@@ -43,7 +47,11 @@ export default function SaveScreen() {
   const router = useRouter();
 
   const savingProgress = useMemo(() => {
-    const rawPct = (amount / saving.target)*100;
+    if (saving.target <= 0) {
+      // no valid target ⇒ show 0%
+      return 0;
+    }
+    const rawPct = (amount / saving.target) * 100;
     const clamped = Math.min(Math.max(rawPct, 0), 100);
     return Math.round(clamped * 100) / 100;
   }, [amount]);
@@ -68,7 +76,9 @@ export default function SaveScreen() {
         setSaving(value);
       }
     });
+  });
 
+  useEffect(() => {
     const deferFunc = savingDb.onSavingTransaction(db, Number(id), (values) => {
       getTransactionsAmount(Number(id));
       const groupedTransactions: {
@@ -83,17 +93,39 @@ export default function SaveScreen() {
         }
       });
       setTransactions(groupedTransactions);
-    });
+    }, startDate, endDate);
     return () => {
       deferFunc();
     };
-  }, []);
+  }, [startDate, endDate]);
 
+  // set the title of the screen to the name of the saving
   useEffect(() => {
     navigation.setOptions({
       title: save,
     });
   }, [navigation]);
+
+  // onDatePickerCancel is called when the user cancels the date range selection
+  const onDatePickerCancel = () => {
+    setShowDatePicker(false);
+  };
+
+  const onDatePickerClear = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setShowDatePicker(false);
+  };
+
+  // onDatePickerApply is called when the user selects a date range
+  const onDatePickerApply = (range: { startDate: string; endDate: string }) => {
+    setShowDatePicker(false);
+    // Handle the selected date range
+    const start = new Date(range.startDate);
+    const end = new Date(range.endDate);
+    setStartDate(start);
+    setEndDate(end);
+  };
 
   return (
     <ParallaxScrollView
@@ -112,6 +144,12 @@ export default function SaveScreen() {
           }}
         />
       </Portal>
+      <RangeDatePicker
+        visible={showDatePicker}
+        onCancel={onDatePickerCancel}
+        onApply={onDatePickerApply}
+        onClear={onDatePickerClear}
+      />
       {/* Goal and Amount Saved */}
       <View style={styles.goalContainer}>
         <View style={styles.goalRowContainer}>
@@ -140,29 +178,32 @@ export default function SaveScreen() {
           {savingProgress}% of Your Expenses, Looks Good.
         </Text>
       </View>
-
-      <View style={styles.listContainer}>
-        <IconButton
-          icon="calendar"
-          mode="contained"
-          onPress={() => console.log("Pressed")}
-          style={styles.calendar}
-        />
-        {Object.keys(transactions).map((key, index) => (
-          <List.Section key={index}>
+      {/* Transactions List */}
+      {Object.keys(transactions).map((key, index) => (
+        <List.Section key={index}>
+          <View style={styles.listHeader}>
             <List.Subheader>{key}</List.Subheader>
-            {transactions[key].map((transaction) => (
-              <Transaction
-                key={transaction.id}
-                iconName={saving.icon}
-                date={formatTransactionDate(transaction.date)}
-                name={transaction.title}
-                value={transaction.amount}
+            {index === 0 && (
+              <IconButton
+                icon="calendar"
+                selected
+                mode="contained"
+                onPress={() => setShowDatePicker(true)}
+                style={styles.calendar}
               />
-            ))}
-          </List.Section>
-        ))}
-      </View>
+            )}
+          </View>
+          {transactions[key].map((transaction) => (
+            <Transaction
+              key={transaction.id}
+              iconName={saving.icon}
+              date={formatTransactionDate(transaction.date)}
+              name={transaction.title}
+              value={transaction.amount}
+            />
+          ))}
+        </List.Section>
+      ))}
     </ParallaxScrollView>
   );
 }
@@ -222,14 +263,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: "#6B7280",
   },
-  listContainer: {
-    position: "relative",
+  listHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  calendar: {
-    position: "absolute",
-    right: 10,
-    top: 5,
-  },
+  calendar: {},
   addFab: {
     position: "absolute",
     alignSelf: "center",

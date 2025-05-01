@@ -41,7 +41,7 @@ class TransactionService {
       "INSERT INTO transactions(title, date, amount, type, category_id) VALUES ($title, $date, $amount, $type, $category_id)",
       data
     );
-    
+
     this.eventEmitter.emit(`${transaction.type}Changed`);
   }
 
@@ -65,7 +65,10 @@ class TransactionService {
     );
   }
 
-  async getCategoryTransactions(db: SQLiteDatabase, categoryID: number): Promise<Transaction[]> {
+  async getCategoryTransactions(
+    db: SQLiteDatabase,
+    categoryID: number
+  ): Promise<Transaction[]> {
     return db.getAllAsync(
       `SELECT *, strftime('%Y-%m', date) as month 
        FROM transactions 
@@ -75,16 +78,59 @@ class TransactionService {
     );
   }
 
-  onCategoryTransactions(db: SQLiteDatabase, id: number, callback: (transactions: Transaction[]) => void) {
+  async getTransactionsBetween(
+    db: SQLiteDatabase,
+    categoryId: number,
+    startISO: string,
+    endISO: string
+  ): Promise<Transaction[]> {
+    return db.getAllAsync<Transaction>(
+      `
+        SELECT *
+          FROM transactions
+         WHERE category_id = ?
+           AND date BETWEEN ? AND ?
+         ORDER BY date ASC;
+        `,
+      [categoryId, startISO, endISO]
+    );
+  }
+
+  onCategoryTransactions(
+    db: SQLiteDatabase,
+    id: number,
+    callback: (transactions: Transaction[]) => void,
+    startDate?: Date,
+    endDate?: Date
+  ) {
     const loadData = async () => {
-      const dbData = await this.getCategoryTransactions(db, id);
+      let dbData: Transaction[];
+
+      if (startDate && endDate) {
+        // --- filter by ISO range ---
+        const startISO = startDate.toISOString();
+        const endISO = endDate.toISOString();
+        dbData = await this.getTransactionsBetween(
+          db,
+          id,
+          startISO,
+          endISO
+        );
+      } else {
+        // --- no dates provided ⇒ fetch all ---
+        dbData = await this.getCategoryTransactions(db, id);
+      }
+
       callback(dbData);
-    }
+    };
 
     //initialize data
     loadData();
 
-    const subscription = this.eventEmitter.addListener("expenseChanged", loadData);
+    const subscription = this.eventEmitter.addListener(
+      "expenseChanged",
+      loadData
+    );
 
     return () => subscription.remove();
   }

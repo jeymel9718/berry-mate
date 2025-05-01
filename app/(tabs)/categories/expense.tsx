@@ -43,9 +43,13 @@ export default function ExpenseScreen() {
   };
 
   const onSave = async () => {
-    await transactionDB.saveTransaction(db, {...expense, amount: Number(amount)});
+    await transactionDB.saveTransaction(db, {
+      ...expense,
+      amount: Number(amount),
+      date: expenseDate.toISOString(),
+    });
     router.back();
-  }
+  };
 
   useEffect(() => {
     async function loadCategories() {
@@ -101,11 +105,7 @@ export default function ExpenseScreen() {
             onValueChange={(v) => setExpense({ ...expense, category_id: v })}
           >
             {categories.map((category, i) => (
-              <Picker.Item
-                key={i}
-                label={category.name}
-                value={category.id}
-              />
+              <Picker.Item key={i} label={category.name} value={category.id} />
             ))}
           </Picker>
         </View>

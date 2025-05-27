@@ -96,6 +96,10 @@ class CategoryService {
 
   async deleteCategory(db: SQLiteDatabase, id: number) {
     await db.runAsync("DELETE FROM categories WHERE id=$1", id);
+    await db.runAsync(
+      "DELETE FROM transactions WHERE category_id=$1",
+      id
+    );
     this.eventEmitter.emit("categoryChanged");
   }
 }

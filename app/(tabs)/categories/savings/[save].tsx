@@ -81,6 +81,10 @@ export default function SaveScreen() {
   useEffect(() => {
     const deferFunc = savingDb.onSavingTransaction(db, Number(id), (values) => {
       getTransactionsAmount(Number(id));
+      if (values.length === 0) {
+        setTransactions({});
+        return;
+      }
       const groupedTransactions: {
         [month: string]: SavingTransaction[];
       } = {};
@@ -175,7 +179,7 @@ export default function SaveScreen() {
         {/* Progress Bar */}
         <ProgressBar progress={savingProgress} amount={saving.target} />
         <Text style={styles.progressText}>
-          {savingProgress}% of Your Expenses, Looks Good.
+          {savingProgress}% of Your Goal. Keep it up!
         </Text>
       </View>
       {/* Transactions List */}

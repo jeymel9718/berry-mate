@@ -1,4 +1,5 @@
 import { BalanceHeader } from "@/components/BalanceHeader";
+import { CategoryHeader } from "@/components/categories/CategoryHeader";
 import { Transaction } from "@/components/categories/Transaction";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { RangeDatePicker } from "@/components/RangeDatePicker";
@@ -16,7 +17,7 @@ import {
   useRouter,
 } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { FAB, IconButton, List, Portal } from "react-native-paper";
 
@@ -41,6 +42,7 @@ export default function CategoryScreen() {
     [month: string]: TransactionType[];
   }>({});
   const navigation = useNavigation();
+  const [categoryAmount, setCategoryAmount] = useState<number>(0);
   const router = useRouter();
 
   useFocusEffect(() => {
@@ -48,6 +50,22 @@ export default function CategoryScreen() {
 
     return () => setVisible(false);
   });
+
+  const categoryProgress = useMemo(() => {
+    if (dbCategory.target <= 0) {
+      // no valid target ⇒ show 0%
+      return 0;
+    }
+    const rawPct = (categoryAmount / dbCategory.target) * 100;
+    const clamped = Math.min(Math.max(rawPct, 0), 100);
+    return Math.round(clamped * 100) / 100;
+  }, [categoryAmount]);
+
+  // getCategoryAmount obtains the total amount spent or earned in the category
+  async function getCategoryAmount(id: number) {
+    const amount = await transactionDB.getTotalAmount(db, id);
+    setCategoryAmount(amount.total);
+  }
 
   useEffect(() => {
     categoryDB.getCategory(db, id).then((dbData) => {
@@ -61,6 +79,15 @@ export default function CategoryScreen() {
       db,
       Number(id),
       (transactions) => {
+        getCategoryAmount(Number(id));
+        // Group transactions by month
+        // transactions are grouped by month, using the month property
+        // which is a string in the format "YYYY-MM"
+        // If the month property is not present, it defaults to an empty string
+        if (transactions.length === 0) {
+          setTransactions({});
+          return;
+        }
         const groupedTransactions: {
           [month: string]: TransactionType[];
         } = {};
@@ -73,7 +100,10 @@ export default function CategoryScreen() {
           }
         });
         setTransactions(groupedTransactions);
-      }
+      },
+      startDate,
+      endDate,
+      category === "Incomes"
     );
     return () => {
       deferFunc();
@@ -126,7 +156,12 @@ export default function CategoryScreen() {
             height: "100%",
           }}
         >
-          <BalanceHeader />
+          <CategoryHeader
+            expenseTarget={dbCategory.target}
+            expenseAmount={categoryAmount}
+            progress={categoryProgress}
+            expenseName={dbCategory.name}
+          />
         </View>
       }
       headerHeight={220}

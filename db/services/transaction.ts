@@ -101,7 +101,8 @@ class TransactionService {
     id: number,
     callback: (transactions: Transaction[]) => void,
     startDate?: Date,
-    endDate?: Date
+    endDate?: Date,
+    isIncome: boolean = false
   ) {
     const loadData = async () => {
       let dbData: Transaction[];
@@ -128,11 +129,21 @@ class TransactionService {
     loadData();
 
     const subscription = this.eventEmitter.addListener(
-      "expenseChanged",
+      isIncome ? "incomeChanged" : "expenseChanged",
       loadData
     );
 
     return () => subscription.remove();
+  }
+
+  async getTotalAmount(
+    db: SQLiteDatabase,
+    id: number): Promise<{ total: number }> {
+    const result = await db.getFirstAsync<Promise<null | {total: number}>>(
+      `SELECT COALESCE(SUM(amount),0) as total FROM transactions WHERE category_id = ?`,
+      id
+    );
+    return result || { total: 0 };
   }
 }
 

@@ -1,4 +1,5 @@
 import { windowWidth } from "@/constants/Dimensions";
+import { savingDb } from "@/db/services/savings";
 import { Link, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
@@ -34,8 +35,13 @@ export function Saving({ name, iconName, id }: SavingProps) {
     setMenuVisible(true);
   };
 
-  const editCategory = () => {
+  const editSaving = () => {
     router.navigate(`/categories/edit?id=${id}&savings=true`);
+    setMenuVisible(false);
+  };
+
+  const deleteSaving = async () => {
+    await savingDb.deleteSaving(db, id);
     setMenuVisible(false);
   };
 
@@ -52,9 +58,14 @@ export function Saving({ name, iconName, id }: SavingProps) {
         onDismiss={() => setMenuVisible(false)}
       >
         <Menu.Item
-          onPress={editCategory}
+          onPress={editSaving}
           title="Edit"
           leadingIcon="note-edit"
+        />
+        <Menu.Item
+          onPress={deleteSaving}
+          title="Delete"
+          leadingIcon="delete"
         />
       </Menu>
       <Text variant="labelLarge">{name}</Text>

@@ -166,6 +166,16 @@ class SavingService {
       id
     );
   }
+
+  async deleteSaving(db: SQLiteDatabase, id: number) {
+    await db.runAsync("DELETE FROM savings WHERE id = ?", id);
+    await db.runAsync(
+      "DELETE FROM transactions_savings WHERE saving_id = ?",
+      id
+    );
+    // Emit event to notify that savings have changed
+    this.eventEmitter.emit("savingsChanged");
+  }
 }
 
 export const savingDb: SavingService = SavingService.getInstance();

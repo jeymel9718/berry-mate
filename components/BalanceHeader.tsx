@@ -1,9 +1,32 @@
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { Divider, Icon, Text } from "react-native-paper";
 import { ProgressBar } from "./home/ProgressBar";
+import { useSQLiteContext } from "expo-sqlite";
+import { useEffect, useState } from "react";
+import { transactionDB } from "@/db/services/transaction";
 
 export function BalanceHeader(){
+  const db = useSQLiteContext();
   const { width } = useWindowDimensions();
+  const [transactionsBalance, setTransactionsBalance] = useState<number>(0);
+  const [expenses, setExpenses] = useState<number>(0);
+  const [income, setIncome] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      // Fetch total balance and expenses from the database
+      const transactionsBalance = await transactionDB.getTotalTransactionsAmount(db); 
+
+      // Update the state or context with the fetched data
+      // This is just a placeholder, you would typically use a state management solution
+      setIncome(transactionsBalance.total_income);
+      setExpenses(transactionsBalance.total_expense);
+      setTransactionsBalance(transactionsBalance.total_income - transactionsBalance.total_expense);
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <View style={[styles.centerContainer, {width: width*0.83}]}>
         <View style={styles.balanceContainer}>
@@ -14,7 +37,7 @@ export function BalanceHeader(){
                 Total Balance
               </Text>
             </View>
-            <Text variant="titleLarge">$7,783.00</Text>
+            <Text variant="titleLarge">${transactionsBalance}</Text>
           </View>
           <Divider horizontalInset style={styles.divider}/>
           <View>
@@ -25,7 +48,7 @@ export function BalanceHeader(){
               </Text>
             </View>
             <Text variant="titleLarge">
-              -$1,187.40
+              -${expenses}
             </Text>
           </View>
         </View>

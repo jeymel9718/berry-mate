@@ -156,12 +156,16 @@ export default function CategoryScreen() {
             height: "100%",
           }}
         >
-          <CategoryHeader
-            expenseTarget={dbCategory.target}
-            expenseAmount={categoryAmount}
-            progress={categoryProgress}
-            expenseName={dbCategory.name}
-          />
+          {category === "Incomes" ? (
+            <BalanceHeader />
+          ) : (
+            <CategoryHeader
+              expenseTarget={dbCategory.target}
+              expenseAmount={categoryAmount}
+              progress={categoryProgress}
+              expenseName={dbCategory.name}
+            />
+          )}
         </View>
       }
       headerHeight={220}

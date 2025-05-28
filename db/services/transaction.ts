@@ -12,6 +12,11 @@ export type Transaction = {
   month?: string;
 };
 
+export type TransactionWithCategory = Transaction & {
+  category_name: string;
+  category_icon: string;
+};
+
 class TransactionService {
   static instance: TransactionService;
   private eventEmitter = new NativeEventEmitter(
@@ -51,11 +56,39 @@ class TransactionService {
     );
   }
 
-  async listTransactions(db: SQLiteDatabase): Promise<Transaction[]> {
-    return db.getAllAsync(
-      `SELECT *, strftime('%Y-%m', date) as month 
-       FROM transactions
-       ORDER BY date ASC`
+  async listTransactions(
+    db: SQLiteDatabase,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<TransactionWithCategory[]> {
+    // build the base SQL with join
+    const baseQuery = `
+      SELECT
+        t.*,
+        c.name   AS category_name,
+        c.icon   AS category_icon,
+        strftime('%Y-%m', t.date) AS month
+      FROM transactions AS t
+      LEFT JOIN categories AS c
+        ON t.category_id = c.id
+    `;
+  
+    if (startDate && endDate) {
+      const startISO = startDate.toISOString();
+      const endISO   = endDate.toISOString();
+  
+      return db.getAllAsync<TransactionWithCategory>(
+        `${baseQuery}
+         WHERE t.date BETWEEN ? AND ?
+         ORDER BY t.date ASC;`,
+        [startISO, endISO]
+      );
+    }
+  
+    // no date filters ⇒ return all
+    return db.getAllAsync<TransactionWithCategory>(
+      `${baseQuery}
+       ORDER BY t.date ASC;`
     );
   }
 
@@ -111,12 +144,7 @@ class TransactionService {
         // --- filter by ISO range ---
         const startISO = startDate.toISOString();
         const endISO = endDate.toISOString();
-        dbData = await this.getTransactionsBetween(
-          db,
-          id,
-          startISO,
-          endISO
-        );
+        dbData = await this.getTransactionsBetween(db, id, startISO, endISO);
       } else {
         // --- no dates provided ⇒ fetch all ---
         dbData = await this.getCategoryTransactions(db, id);
@@ -138,12 +166,29 @@ class TransactionService {
 
   async getTotalAmount(
     db: SQLiteDatabase,
-    id: number): Promise<{ total: number }> {
-    const result = await db.getFirstAsync<Promise<null | {total: number}>>(
+    id: number
+  ): Promise<{ total: number }> {
+    const result = await db.getFirstAsync<Promise<null | { total: number }>>(
       `SELECT COALESCE(SUM(amount),0) as total FROM transactions WHERE category_id = ?`,
       id
     );
     return result || { total: 0 };
+  }
+
+  async getTotalTransactionsAmount(
+    db: SQLiteDatabase
+  ): Promise<{ total_income: number; total_expense: number }> {
+    const result = await db.getFirstAsync<{
+      total_income: number;
+      total_expense: number;
+    }>(
+      `SELECT
+        COALESCE(SUM(CASE WHEN type = 'income'  THEN amount ELSE 0 END), 0) AS total_income,
+        COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS total_expense
+      FROM
+        transactions;`
+    );
+    return result || { total_income: 0, total_expense: 0 };
   }
 }
 

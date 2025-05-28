@@ -9,11 +9,12 @@ import { IconButton, List } from "react-native-paper";
 import { Transaction } from "@/components/Transaction";
 import { BalanceActions } from "@/constants/Enums";
 import { BalanceState } from "@/constants/Types";
-import { useContext, useEffect, useReducer } from "react";
+import { useContext, useEffect, useReducer, useState } from "react";
 import { usePreferences } from "@/contexts/Preferences";
 import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
-import { transactionDB } from "@/db/services/transaction";
+import { transactionDB, TransactionWithCategory } from "@/db/services/transaction";
+import { formatTransactionDate } from "@/utils/utils";
 
 
 function reducer(state: BalanceState, action: BalanceActions) {
@@ -34,18 +35,51 @@ function reducer(state: BalanceState, action: BalanceActions) {
 export default function TransactionScreen() {
   const db = useSQLiteContext();
   const [state, dispatch] = useReducer(reducer, {income: false, expense: false});
+  const [transactionsBalance, setTransactionsBalance] = useState<number>(0);
+  const [expenses, setExpenses] = useState<number>(0);
+  const [income, setIncome] = useState<number>(0);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const preferences = usePreferences();
+  const [transactions, setTransactions] = useState<{
+      [month: string]: TransactionWithCategory[];
+    }>({});
   
   useFocusEffect(() => {
     preferences.showFab();
 
     return () => preferences.hideFab();
   });
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const transactionsList = await transactionDB.listTransactions(db, startDate, endDate);
+      const groupedTransactions: { [month: string]: TransactionWithCategory[] } = {};
+      transactionsList.forEach((transaction) => {
+        const month = new Date(transaction.date).toLocaleString('default', { month: 'long' });
+        if (!groupedTransactions[month]) {
+          groupedTransactions[month] = [];
+        }
+        groupedTransactions[month].push(transaction);
+      });
+      setTransactions(groupedTransactions);
+    };
+    fetchTransactions();
+  }, [startDate, endDate]);
   
   useEffect(() => {
-    transactionDB.listTransactions(db).then((transactions) => {
-      console.info(transactions)
-    })
+    const fetchData = async () => {
+      // Fetch total balance and expenses from the database
+      const transactionsBalance = await transactionDB.getTotalTransactionsAmount(db); 
+
+      // Update the state or context with the fetched data
+      // This is just a placeholder, you would typically use a state management solution
+      setIncome(transactionsBalance.total_income);
+      setExpenses(transactionsBalance.total_expense);
+      setTransactionsBalance(transactionsBalance.total_income - transactionsBalance.total_expense);
+    };
+
+    fetchData();
   }, [])
 
   return (
@@ -53,9 +87,9 @@ export default function TransactionScreen() {
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
       headerImage={
         <TransactionHeader
-          expense="$1,187.40"
-          income="$4,120.00"
-          balance="$7,783.00"
+          expense={`$${expenses.toFixed(2)}`}
+          income={`$${income.toFixed(2)}`}
+          balance={`$${transactionsBalance.toFixed(2)}`}
           incomeSelected={state.income}
           expenseSelected={state.expense}
           actions={dispatch}
@@ -68,106 +102,21 @@ export default function TransactionScreen() {
         onPress={() => console.log("Pressed")}
         style={styles.calendar}
       />
-      <List.Section>
-        <List.Subheader>April</List.Subheader>
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-      </List.Section>
-      <List.Section>
-        <List.Subheader>March</List.Subheader>
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-      </List.Section>
-      <List.Section>
-        <List.Subheader>February</List.Subheader>
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-      </List.Section>
+      {Object.keys(transactions).map((month, index) => (
+        <List.Section key={index}>
+          <List.Subheader>{month}</List.Subheader>
+          {transactions[month].map((transaction) => (
+            <Transaction
+              key={transaction.id}
+              iconName={transaction.category_icon}
+              date={formatTransactionDate(transaction.date)}
+              category={transaction.category_name}
+              transaction={transaction.title}
+              value={transaction.amount}
+            />
+          ))}
+        </List.Section>
+      ))}
     </ParallaxScrollView>
   );
 }

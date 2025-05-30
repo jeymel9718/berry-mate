@@ -13,38 +13,45 @@ import { useContext, useEffect, useReducer, useState } from "react";
 import { usePreferences } from "@/contexts/Preferences";
 import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
-import { transactionDB, TransactionWithCategory } from "@/db/services/transaction";
+import {
+  transactionDB,
+  TransactionWithCategory,
+} from "@/db/services/transaction";
 import { formatTransactionDate } from "@/utils/utils";
-
+import { RangeDatePicker } from "@/components/RangeDatePicker";
 
 function reducer(state: BalanceState, action: BalanceActions) {
   switch (action) {
     case BalanceActions.INCOME: {
       state.income = !state.income;
       state.expense = false;
-      return {...state};
+      return { ...state };
     }
     case BalanceActions.EXPENSE: {
       state.expense = !state.expense;
       state.income = false;
-      return {...state};
+      return { ...state };
     }
   }
 }
 
 export default function TransactionScreen() {
   const db = useSQLiteContext();
-  const [state, dispatch] = useReducer(reducer, {income: false, expense: false});
+  const [state, dispatch] = useReducer(reducer, {
+    income: false,
+    expense: false,
+  });
   const [transactionsBalance, setTransactionsBalance] = useState<number>(0);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [expenses, setExpenses] = useState<number>(0);
   const [income, setIncome] = useState<number>(0);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const preferences = usePreferences();
   const [transactions, setTransactions] = useState<{
-      [month: string]: TransactionWithCategory[];
-    }>({});
-  
+    [month: string]: TransactionWithCategory[];
+  }>({});
+
   useFocusEffect(() => {
     preferences.showFab();
 
@@ -53,10 +60,21 @@ export default function TransactionScreen() {
 
   useEffect(() => {
     const fetchTransactions = async () => {
-      const transactionsList = await transactionDB.listTransactions(db, startDate, endDate);
-      const groupedTransactions: { [month: string]: TransactionWithCategory[] } = {};
+      const transactionsList = await transactionDB.listTransactions(
+        db,
+        state.income,
+        state.expense,
+        startDate,
+        endDate
+      );
+      // Group transactions by month
+      const groupedTransactions: {
+        [month: string]: TransactionWithCategory[];
+      } = {};
       transactionsList.forEach((transaction) => {
-        const month = new Date(transaction.date).toLocaleString('default', { month: 'long' });
+        const month = new Date(transaction.date).toLocaleString("default", {
+          month: "long",
+        });
         if (!groupedTransactions[month]) {
           groupedTransactions[month] = [];
         }
@@ -65,22 +83,46 @@ export default function TransactionScreen() {
       setTransactions(groupedTransactions);
     };
     fetchTransactions();
-  }, [startDate, endDate]);
-  
+  }, [startDate, endDate, state.expense, state.income]);
+
   useEffect(() => {
     const fetchData = async () => {
       // Fetch total balance and expenses from the database
-      const transactionsBalance = await transactionDB.getTotalTransactionsAmount(db); 
+      const transactionsBalance =
+        await transactionDB.getTotalTransactionsAmount(db);
 
       // Update the state or context with the fetched data
       // This is just a placeholder, you would typically use a state management solution
       setIncome(transactionsBalance.total_income);
       setExpenses(transactionsBalance.total_expense);
-      setTransactionsBalance(transactionsBalance.total_income - transactionsBalance.total_expense);
+      setTransactionsBalance(
+        transactionsBalance.total_income - transactionsBalance.total_expense
+      );
     };
 
     fetchData();
-  }, [])
+  }, []);
+
+  // onDatePickerCancel is called when the user cancels the date range selection
+  const onDatePickerCancel = () => {
+    setShowDatePicker(false);
+  };
+
+  const onDatePickerClear = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setShowDatePicker(false);
+  };
+
+  // onDatePickerApply is called when the user selects a date range
+  const onDatePickerApply = (range: { startDate: string; endDate: string }) => {
+    setShowDatePicker(false);
+    // Handle the selected date range
+    const start = new Date(range.startDate);
+    const end = new Date(range.endDate);
+    setStartDate(start);
+    setEndDate(end);
+  };
 
   return (
     <ParallaxScrollView
@@ -96,10 +138,16 @@ export default function TransactionScreen() {
         />
       }
     >
+      <RangeDatePicker
+        visible={showDatePicker}
+        onApply={onDatePickerApply}
+        onCancel={onDatePickerCancel}
+        onClear={onDatePickerClear}
+      />
       <IconButton
         icon="calendar"
         mode="contained"
-        onPress={() => console.log("Pressed")}
+        onPress={() => setShowDatePicker(true)}
         style={styles.calendar}
       />
       {Object.keys(transactions).map((month, index) => (

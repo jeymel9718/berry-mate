@@ -17,6 +17,12 @@ export type TransactionWithCategory = Transaction & {
   category_icon: string;
 };
 
+export type DayTransaction = {
+  day: string;
+  income: number;
+  expenses: number;
+}
+
 class TransactionService {
   static instance: TransactionService;
   private eventEmitter = new NativeEventEmitter(
@@ -50,14 +56,10 @@ class TransactionService {
     this.eventEmitter.emit(`${transaction.type}Changed`);
   }
 
-  async listIncomes(db: SQLiteDatabase): Promise<Transaction[]> {
-    return db.getAllAsync(
-      `SELECT * FROM transactions WHERE type = "${BalanceActions.INCOME}"`
-    );
-  }
-
   async listTransactions(
     db: SQLiteDatabase,
+    income: boolean = false,
+    expense: boolean = false,
     startDate?: Date,
     endDate?: Date
   ): Promise<TransactionWithCategory[]> {
@@ -72,29 +74,112 @@ class TransactionService {
       LEFT JOIN categories AS c
         ON t.category_id = c.id
     `;
-  
+
     if (startDate && endDate) {
       const startISO = startDate.toISOString();
-      const endISO   = endDate.toISOString();
-  
+      const endISO = endDate.toISOString();
+
       return db.getAllAsync<TransactionWithCategory>(
         `${baseQuery}
          WHERE t.date BETWEEN ? AND ?
+         AND (
+            /* if both flags false, include all: */
+            (? = 0 AND ? = 0)
+            /* else only the checked types: */
+            OR (t.type = 'income'  AND ? = 1)
+            OR (t.type = 'expense' AND ? = 1)
+          )
+         ORDER BY t.date ASC;`,
+        [
+          startISO,
+          endISO,
+          income ? 1 : 0,
+          expense ? 1 : 0,
+          income ? 1 : 0,
+          expense ? 1 : 0,
+        ]
+      );
+    }
+
+    // no date filters ⇒ return all
+    return db.getAllAsync<TransactionWithCategory>(
+      `${baseQuery}
+        WHERE (
+            /* if both flags false, include all: */
+            (? = 0 AND ? = 0)
+            /* else only the checked types: */
+            OR (t.type = 'income'  AND ? = 1)
+            OR (t.type = 'expense' AND ? = 1)
+          )
+       ORDER BY t.date ASC;`,
+      [income ? 1 : 0, expense ? 1 : 0, income ? 1 : 0, expense ? 1 : 0]
+    );
+  }
+
+  async listIncomeTransactions(
+    db: SQLiteDatabase,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<TransactionWithCategory[]> {
+    const baseQuery = `
+      SELECT
+        t.*,
+        c.name   AS category_name,
+        c.icon   AS category_icon,
+        strftime('%Y-%m', t.date) AS month
+      FROM transactions AS t
+      LEFT JOIN categories AS c
+        ON t.category_id = c.id
+      WHERE t.type = 'income'
+    `;
+    if (startDate && endDate) {
+      const startISO = startDate.toISOString();
+      const endISO = endDate.toISOString();
+
+      return db.getAllAsync<TransactionWithCategory>(
+        `${baseQuery}
+         AND t.date BETWEEN ? AND ?
          ORDER BY t.date ASC;`,
         [startISO, endISO]
       );
     }
-  
     // no date filters ⇒ return all
     return db.getAllAsync<TransactionWithCategory>(
       `${baseQuery}
-       ORDER BY t.date ASC;`
+        ORDER BY t.date ASC;`
     );
   }
 
-  async listExpense(db: SQLiteDatabase): Promise<Transaction[]> {
-    return db.getAllAsync(
-      `SELECT * FROM transactions WHERE type = "${BalanceActions.EXPENSE}"`
+  async listExpenseTransactions(
+    db: SQLiteDatabase,
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<TransactionWithCategory[]> {
+    const baseQuery = `
+      SELECT
+        t.*,
+        c.name   AS category_name,
+        c.icon   AS category_icon,
+        strftime('%Y-%m', t.date) AS month
+      FROM transactions AS t
+      LEFT JOIN categories AS c
+        ON t.category_id = c.id
+      WHERE t.type = 'expense'
+    `;
+    if (startDate && endDate) {
+      const startISO = startDate.toISOString();
+      const endISO = endDate.toISOString();
+      return db.getAllAsync<TransactionWithCategory>(
+        `${baseQuery}
+         AND t.date BETWEEN ? AND ?
+         ORDER BY t.date ASC;`,
+        [startISO, endISO]
+      );
+    }
+    // no date filters ⇒ return all
+    return db.getAllAsync<TransactionWithCategory>(
+      `${baseQuery}
+        ORDER BY t.date ASC;`
     );
   }
 
@@ -189,6 +274,36 @@ class TransactionService {
         transactions;`
     );
     return result || { total_income: 0, total_expense: 0 };
+  }
+
+  async getLastWeekTransactions(db: SQLiteDatabase) : Promise<DayTransaction[]> {
+    // Fetch transactions for the last 7 days, grouped by day of the week
+    // and calculate total income and expenses for each day.
+    // The result will be an array of objects with day, weekday, income, and expenses.
+    const result = await db.getAllAsync<DayTransaction>(`
+      SELECT
+        strftime('%w', date) AS weekday_num,
+        CASE strftime('%w', date)
+          WHEN '0' THEN 'Sun'
+          WHEN '1' THEN 'Mon'
+          WHEN '2' THEN 'Tue'
+          WHEN '3' THEN 'Wed'
+          WHEN '4' THEN 'Thu'
+          WHEN '5' THEN 'Fri'
+          WHEN '6' THEN 'Sat'
+        END AS day,
+        COALESCE(SUM(CASE WHEN type = 'income'  THEN amount END), 0)  AS income,
+        COALESCE(SUM(CASE WHEN type = 'expense' THEN amount END), 0)  AS expenses
+      FROM
+        transactions
+      WHERE
+        date(date) BETWEEN date('now', '-6 days') AND date('now')
+      GROUP BY
+        weekday_num
+      ORDER BY
+        weekday_num;
+      `);
+      return result;
   }
 }
 

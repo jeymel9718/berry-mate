@@ -2,7 +2,7 @@ import { BalanceHeader } from "@/components/BalanceHeader";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { SectionButton } from "@/components/SectionButton";
 import { windowHeight, windowWidth } from "@/constants/Dimensions";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Surface, Text } from "react-native-paper";
 import { BarGroup, CartesianChart, Pie, PolarChart } from "victory-native";
@@ -14,15 +14,17 @@ import { IncomeExpense } from "@/components/analysis/IncomeExpense";
 import React from "react";
 import { PieLabel } from "@/components/analysis/PieLabel";
 import { PieTags } from "@/components/analysis/PieTags";
+import { useSQLiteContext } from "expo-sqlite";
+import { DayTransaction, transactionDB } from "@/db/services/transaction";
 
 const data = [
-  { day: "Mon", income: 5000, expenses: 2000 },
-  { day: "Tue", income: 3000, expenses: 1500 },
-  { day: "Wed", income: 6000, expenses: 2500 },
-  { day: "Thu", income: 4000, expenses: 2000 },
-  { day: "Fri", income: 8000, expenses: 3500 },
-  { day: "Sat", income: 2000, expenses: 1000 },
-  { day: "Sun", income: 7000, expenses: 3000 },
+  { day: "Mon", income: 0, expenses: 0 },
+  { day: "Tue", income: 0, expenses: 0 },
+  { day: "Wed", income: 0, expenses: 0 },
+  { day: "Thu", income: 0, expenses: 0 },
+  { day: "Fri", income: 0, expenses: 0 },
+  { day: "Sat", income: 0, expenses: 0 },
+  { day: "Sun", income: 0, expenses: 0 },
 ];
 
 const pieData = [
@@ -34,11 +36,34 @@ const pieData = [
 ];
 
 export default function AnalysisScreen() {
+  const db = useSQLiteContext();
   const font = useFont(roboto, 11);
   const yFont = useFont(italicRoboto, 9);
 
+  const [grapData, setGrapData] = useState<DayTransaction[]>(data);
   const [selectedSegment, setSelectedSegment] = useState("Daily");
   const segments = ["Daily", "Weekly", "Monthly", "Year"];
+
+  useEffect(() => {
+    const updateData = async () => {
+      const result = await transactionDB.getLastWeekTransactions(db);
+      data.forEach((item) => {
+        const dayData = result.find((d) => d.day === item.day);
+        if (dayData) {
+          item.income = dayData.income;
+          item.expenses = dayData.expenses;
+        } else {
+          item.income = 0;
+          item.expenses = 0;
+        }
+      });
+      // Update the grapData state with the new data
+      setGrapData(data);
+    }
+
+    updateData();
+  }, [selectedSegment]);
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
@@ -66,7 +91,7 @@ export default function AnalysisScreen() {
           <Text variant="titleSmall">Incomes & Expenses</Text>
           <View style={styles.chartContainer}>
             <CartesianChart
-              data={data}
+              data={grapData}
               xKey="day"
               yKeys={["income", "expenses"]}
               domainPadding={{ left: 20, right: 20 }}

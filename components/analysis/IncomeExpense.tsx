@@ -2,8 +2,8 @@ import { Text, View, StyleSheet } from "react-native";
 import { Icon } from "react-native-paper";
 
 export type IncomeExpenseProps = {
-  income: string;
-  expense: string;
+  income: number;
+  expense: number;
 };
 
 export function IncomeExpense({ income, expense }: IncomeExpenseProps) {
@@ -15,7 +15,7 @@ export function IncomeExpense({ income, expense }: IncomeExpenseProps) {
           <Icon source="arrow-top-right" size={20} color="#1FC76A" />
         </View>
         <Text style={styles.label}>Income</Text>
-        <Text style={[styles.amount, { color: "#1FC76A" }]}>$4,120.00</Text>
+        <Text style={[styles.amount, { color: "#1FC76A" }]}>${income.toFixed(2)}</Text>
       </View>
 
       {/* Expense Box */}
@@ -24,7 +24,7 @@ export function IncomeExpense({ income, expense }: IncomeExpenseProps) {
           <Icon source="arrow-bottom-left" size={20} color="#0091FF" />
         </View>
         <Text style={styles.label}>Expense</Text>
-        <Text style={[styles.amount, { color: "#0091FF" }]}>$1,187.40</Text>
+        <Text style={[styles.amount, { color: "#0091FF" }]}>${expense.toFixed(2)}</Text>
       </View>
     </View>
   );

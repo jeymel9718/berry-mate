@@ -276,7 +276,7 @@ class TransactionService {
     return result || { total_income: 0, total_expense: 0 };
   }
 
-  async getLastWeekTransactions(db: SQLiteDatabase) : Promise<DayTransaction[]> {
+  async getDailyTransactions(db: SQLiteDatabase) : Promise<DayTransaction[]> {
     // Fetch transactions for the last 7 days, grouped by day of the week
     // and calculate total income and expenses for each day.
     // The result will be an array of objects with day, weekday, income, and expenses.
@@ -304,6 +304,92 @@ class TransactionService {
         weekday_num;
       `);
       return result;
+  }
+
+  async getWeeklyTransactions(db: SQLiteDatabase): Promise<{
+    week: string;
+    income: number;
+    expenses: number;
+  }[]> {
+    // Fetch transactions grouped by week and calculate total income and expenses for each week.
+    const result = await db.getAllAsync<{
+      week: string;
+      income: number;
+      expenses: number;
+    }>(`
+      SELECT
+        strftime('%W', date) - strftime('%W', date('now', 'start of month')) AS week_number,
+        'Week ' || (strftime('%W', date) - strftime('%W', date('now', 'start of month'))) AS week,
+        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS income,
+        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS expenses
+      FROM transactions
+      WHERE date >= date('now', 'start of month')
+        AND date < date('now', 'start of month', '+1 month')
+      GROUP BY week_number
+      ORDER BY week_number;
+    `);
+    return result;
+  }
+
+  async getMonthlyTransactions(db: SQLiteDatabase): Promise<{
+    month: string;
+    income: number;
+    expenses: number;
+  }[]> {
+    // Fetch transactions grouped by month and calculate total income and expenses for each month.
+    const result = await db.getAllAsync<{
+      month: string;
+      income: number;
+      expenses: number;
+    }>(`
+      SELECT
+        strftime('%m', date) AS month_number,
+        strftime('%Y', date) AS year,
+        CASE strftime('%m', date)
+          WHEN '01' THEN 'Jan'
+          WHEN '02' THEN 'Feb'
+          WHEN '03' THEN 'Mar'
+          WHEN '04' THEN 'Apr'
+          WHEN '05' THEN 'May'
+          WHEN '06' THEN 'Jun'
+          WHEN '07' THEN 'Jul'
+          WHEN '08' THEN 'Aug'
+          WHEN '09' THEN 'Sep'
+          WHEN '10' THEN 'Oct'
+          WHEN '11' THEN 'Nov'
+          WHEN '12' THEN 'Dec'
+        END AS month,
+        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS income,
+        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS expenses
+      FROM transactions
+      WHERE date >= DATE('now', '-11 months')
+      GROUP BY year, month
+      ORDER BY year, month_number;
+    `);
+    return result;
+  }
+
+  async getYearlyTransactions(db: SQLiteDatabase): Promise<{
+    year: string;
+    income: number;
+    expenses: number;
+  }[]> {
+    // Fetch transactions grouped by year and calculate total income and expenses for each year.
+    const result = await db.getAllAsync<{
+      year: string;
+      income: number;
+      expenses: number;
+    }>(`
+      SELECT
+        strftime('%Y', date) AS year,
+        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS income,
+        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS expenses
+      FROM transactions
+      WHERE date >= DATE('now', '-5 years')
+      GROUP BY year
+      ORDER BY year DESC;
+    `);
+    return result;
   }
 }
 

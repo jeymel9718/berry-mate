@@ -10,6 +10,11 @@ export type Category = {
   static: boolean;
 };
 
+export type TopCategory = {
+  category: string;
+  total_expense: number;
+}
+
 class CategoryService {
   static instance: CategoryService;
   private eventEmitter = new NativeEventEmitter(
@@ -96,11 +101,62 @@ class CategoryService {
 
   async deleteCategory(db: SQLiteDatabase, id: number) {
     await db.runAsync("DELETE FROM categories WHERE id=$1", id);
-    await db.runAsync(
-      "DELETE FROM transactions WHERE category_id=$1",
-      id
-    );
+    await db.runAsync("DELETE FROM transactions WHERE category_id=$1", id);
     this.eventEmitter.emit("categoryChanged");
+  }
+
+  async getTopCategories(db: SQLiteDatabase): Promise<TopCategory[]> {
+    return await db.getAllAsync(
+      `
+        SELECT
+          c.name       AS category,
+          SUM(t.amount) AS total_expense
+        FROM
+          categories AS c
+          JOIN transactions AS t
+            ON t.category_id = c.id
+        WHERE
+          t.type = 'expense'
+          AND c.id IN (
+            SELECT
+              category_id
+            FROM
+              transactions
+            WHERE
+              type = 'expense'
+            GROUP BY
+              category_id
+            ORDER BY
+              SUM(amount) DESC
+            LIMIT 4
+          )
+        GROUP BY
+          c.id,
+          c.name
+
+        UNION ALL
+
+        SELECT
+          'Others'        AS category,
+          SUM(t.amount)   AS total_expense
+        FROM
+          transactions AS t
+        WHERE
+          t.type = 'expense'
+          AND t.category_id NOT IN (
+            SELECT
+              category_id
+            FROM
+              transactions
+            WHERE
+              type = 'expense'
+            GROUP BY
+              category_id
+            ORDER BY
+              SUM(amount) DESC
+            LIMIT 4
+          );`
+    );
   }
 }
 

@@ -16,6 +16,8 @@ import { PieLabel } from "@/components/analysis/PieLabel";
 import { PieTags } from "@/components/analysis/PieTags";
 import { useSQLiteContext } from "expo-sqlite";
 import { DayTransaction, transactionDB } from "@/db/services/transaction";
+import { categoryDB } from "@/db/services/categories";
+import { getUniquePieColor } from "@/utils/utils";
 
 const data = [
   { day: "Mon", income: 0, expenses: 0 },
@@ -48,21 +50,20 @@ const monthlyData = [
   { month: "Dec", income: 0, expenses: 0 },
 ];
 
-const pieData = [
-  { x: "Rent", y: 25, color: "blue" },
-  { x: "Groceries", y: 15, color: "purple" },
-  { x: "Entertainment", y: 20, color: "green" },
-  { x: "Utilities", y: 10, color: "red" },
-  { x: "Transport", y: 30, color: "yellow" },
-];
-
 export default function AnalysisScreen() {
   const db = useSQLiteContext();
   const font = useFont(roboto, 11);
   const yFont = useFont(italicRoboto, 9);
 
+  const [maxPoint, setMaxPoint] = useState(0);
+  const [pieData, setPieData] = useState<
+    { x: string; y: number; color: string }[]
+  >([]);
   const [graphData, setGraphData] = useState<any[]>(data);
-  const [totalData, setTotalData] = useState<{ income: number; expenses: number }>({
+  const [totalData, setTotalData] = useState<{
+    income: number;
+    expenses: number;
+  }>({
     income: 0,
     expenses: 0,
   });
@@ -92,7 +93,7 @@ export default function AnalysisScreen() {
         dbFunction = transactionDB.getMonthlyTransactions;
         break;
       case "Year":
-        baseData = [] ;
+        baseData = [];
         key = "year";
         dbFunction = transactionDB.getYearlyTransactions;
         break;
@@ -101,13 +102,14 @@ export default function AnalysisScreen() {
         key = "day";
         dbFunction = transactionDB.getDailyTransactions;
     }
-    
+
     // Fetch and merge the data
     const result = await dbFunction(db);
-    console.info("Fetched transactions:", result);
     let totalIncome = 0;
     let totalExpenses = 0;
+    let maxPoint = 0;
     result.forEach((point: any) => {
+      maxPoint = Math.max(maxPoint, point.income || 0, point.expenses || 0);
       totalIncome += point.income || 0;
       totalExpenses += point.expenses || 0;
       const index = baseData.findIndex((item: any) => item[key] === point[key]);
@@ -122,6 +124,7 @@ export default function AnalysisScreen() {
         });
       }
     });
+    setMaxPoint(maxPoint + maxPoint * 0.1); // Add 10% buffer to max point
     setTotalData({ income: totalIncome, expenses: totalExpenses });
     return baseData;
   };
@@ -130,12 +133,26 @@ export default function AnalysisScreen() {
     const updateData = async () => {
       const data = await getDataBySegment(selectedSegment);
       setXtickCount(data.length);
-      console.info(data.length, "data length");
       setGraphData(data || []);
     };
 
     updateData();
   }, [selectedSegment]);
+
+  useEffect(() => {
+    const fetchPieData = async () => {
+      // Fetch top categories from the database
+      const categories = await categoryDB.getTopCategories(db);
+      console.info("Fetched top categories:", categories);
+      const formattedPieData = categories.map((category) => ({
+        x: category.category,
+        y: category.total_expense,
+        color: getUniquePieColor(category.category),
+      }));
+      setPieData(formattedPieData);
+    };
+    fetchPieData();
+  }, []);
 
   const xKey = useMemo(() => {
     switch (selectedSegment) {
@@ -184,8 +201,18 @@ export default function AnalysisScreen() {
               yKeys={["income", "expenses"]}
               domainPadding={{ left: 20, right: 20 }}
               padding={{ bottom: 8, left: 8, right: 8 }}
-              xAxis={{ font: font, lineColor: "transparent", tickCount: xtickCount }}
-              yAxis={[{ font: yFont, formatYLabel: (t) => `${t / 1000}k` }]}
+              xAxis={{
+                font: font,
+                lineColor: "transparent",
+                tickCount: xtickCount,
+              }}
+              yAxis={[
+                {
+                  font: yFont,
+                  formatYLabel: (t) => `${t / 1000}k`,
+                  domain: [0, maxPoint],
+                },
+              ]}
             >
               {({ points, chartBounds }) => (
                 <BarGroup

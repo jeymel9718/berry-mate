@@ -21,7 +21,7 @@ export type DayTransaction = {
   day: string;
   income: number;
   expenses: number;
-}
+};
 
 class TransactionService {
   static instance: TransactionService;
@@ -89,7 +89,7 @@ class TransactionService {
             OR (t.type = 'income'  AND ? = 1)
             OR (t.type = 'expense' AND ? = 1)
           )
-         ORDER BY t.date ASC;`,
+         ORDER BY t.date DESC;`,
         [
           startISO,
           endISO,
@@ -111,7 +111,7 @@ class TransactionService {
             OR (t.type = 'income'  AND ? = 1)
             OR (t.type = 'expense' AND ? = 1)
           )
-       ORDER BY t.date ASC;`,
+       ORDER BY t.date DESC;`,
       [income ? 1 : 0, expense ? 1 : 0, income ? 1 : 0, expense ? 1 : 0]
     );
   }
@@ -276,7 +276,7 @@ class TransactionService {
     return result || { total_income: 0, total_expense: 0 };
   }
 
-  async getDailyTransactions(db: SQLiteDatabase) : Promise<DayTransaction[]> {
+  async getDailyTransactions(db: SQLiteDatabase): Promise<DayTransaction[]> {
     // Fetch transactions for the last 7 days, grouped by day of the week
     // and calculate total income and expenses for each day.
     // The result will be an array of objects with day, weekday, income, and expenses.
@@ -303,14 +303,16 @@ class TransactionService {
       ORDER BY
         weekday_num;
       `);
-      return result;
+    return result;
   }
 
-  async getWeeklyTransactions(db: SQLiteDatabase): Promise<{
-    week: string;
-    income: number;
-    expenses: number;
-  }[]> {
+  async getWeeklyTransactions(db: SQLiteDatabase): Promise<
+    {
+      week: string;
+      income: number;
+      expenses: number;
+    }[]
+  > {
     // Fetch transactions grouped by week and calculate total income and expenses for each week.
     const result = await db.getAllAsync<{
       week: string;
@@ -331,11 +333,13 @@ class TransactionService {
     return result;
   }
 
-  async getMonthlyTransactions(db: SQLiteDatabase): Promise<{
-    month: string;
-    income: number;
-    expenses: number;
-  }[]> {
+  async getMonthlyTransactions(db: SQLiteDatabase): Promise<
+    {
+      month: string;
+      income: number;
+      expenses: number;
+    }[]
+  > {
     // Fetch transactions grouped by month and calculate total income and expenses for each month.
     const result = await db.getAllAsync<{
       month: string;
@@ -369,11 +373,13 @@ class TransactionService {
     return result;
   }
 
-  async getYearlyTransactions(db: SQLiteDatabase): Promise<{
-    year: string;
-    income: number;
-    expenses: number;
-  }[]> {
+  async getYearlyTransactions(db: SQLiteDatabase): Promise<
+    {
+      year: string;
+      income: number;
+      expenses: number;
+    }[]
+  > {
     // Fetch transactions grouped by year and calculate total income and expenses for each year.
     const result = await db.getAllAsync<{
       year: string;
@@ -390,6 +396,40 @@ class TransactionService {
       ORDER BY year DESC;
     `);
     return result;
+  }
+
+  async getLatestTransactions(
+    db: SQLiteDatabase
+  ): Promise<TransactionWithCategory[]> {
+    return await db.getAllAsync<TransactionWithCategory>(
+      `
+      SELECT
+        t.*,
+        c.name       AS category_name,
+        c.icon       AS category_icon
+      FROM
+        transactions AS t
+      LEFT JOIN
+        categories AS c
+          ON t.category_id = c.id
+      ORDER BY
+        t.date DESC
+      LIMIT 15;
+      `
+    );
+  }
+
+  async getLastWeekRevenue(
+    db: SQLiteDatabase
+  ): Promise<{ last_week_revenue: number }> {
+    const result = await db.getFirstAsync<{ last_week_revenue: number }>(`
+      SELECT SUM(amount) as last_week_revenue
+      FROM transactions
+      WHERE type = 'income'
+        AND date >= date('now', '-6 days')
+        AND date <= date('now');
+      `);
+    return result || { last_week_revenue: 0 };
   }
 }
 

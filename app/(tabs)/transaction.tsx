@@ -127,6 +127,7 @@ export default function TransactionScreen() {
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
+      headerHeight={270}
       headerImage={
         <TransactionHeader
           expense={`$${expenses.toFixed(2)}`}

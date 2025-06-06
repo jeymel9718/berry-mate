@@ -3,13 +3,27 @@ import { TopCategory } from "@/components/home/TopCategory";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { Transaction } from "@/components/Transaction";
 import { usePreferences } from "@/contexts/Preferences";
+import { categoryDB, TopCategoryIcon } from "@/db/services/categories";
+import {
+  transactionDB,
+  TransactionWithCategory,
+} from "@/db/services/transaction";
+import { formatTransactionDate } from "@/utils/utils";
 import { useFocusEffect, useNavigation } from "expo-router";
-import { useState } from "react";
+import { useSQLiteContext } from "expo-sqlite";
+import { useEffect, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { Card, FAB, Portal } from "react-native-paper";
 
 export default function IndexScreen() {
+  const db = useSQLiteContext();
   const [open, setOpen] = useState<boolean>(false);
+  const [transactions, setTransactions] = useState<TransactionWithCategory[]>(
+    []
+  );
+  const [firstCategory, setFirstCategory] = useState<TopCategoryIcon>({ name: "", icon: "", target: 0, total_expense: 0 });
+  const [secondCategory, setSecondCategory] = useState<TopCategoryIcon>({ name: "", icon: "", target: 0, total_expense: 0 });
+  const [revenue, setRevenue] = useState<number>(0);
   const preferences = usePreferences();
   const navigation = useNavigation<any>();
 
@@ -18,6 +32,21 @@ export default function IndexScreen() {
 
     return () => preferences.hideFab();
   });
+
+  useEffect(() => {
+    const updateData = async () => {
+      const dbTransactions = await transactionDB.getLatestTransactions(db);
+      const revenue = await transactionDB.getLastWeekRevenue(db);
+      const category = await categoryDB.getMostExpensiveCategory(db);
+      const weekCategory = await categoryDB.getLastWeekCategory(db);
+      setRevenue(revenue.last_week_revenue);
+      setFirstCategory(category);
+      setSecondCategory(weekCategory);
+      setTransactions(dbTransactions);
+    };
+
+    updateData();
+  }, []);
 
   return (
     <ParallaxScrollView
@@ -56,48 +85,22 @@ export default function IndexScreen() {
       </Portal>
       <Card elevation={4}>
         <TopCategory
-          categoryName="Groceries"
-          budget={300}
-          balance={120}
-          iconName="food-outline"
+          firstCategory={firstCategory}
+          secondCategory={secondCategory}
+          revenue={revenue}
         />
       </Card>
       <View style={{ marginTop: 20, gap: 5 }}>
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
-        <Transaction
-          iconName="car-outline"
-          date="April 30"
-          category="Transportation"
-          transaction="Fuel"
-          value={20000}
-        />
+        {transactions.map((transaction, index) => (
+          <Transaction
+            key={index}
+            iconName={transaction.category_icon}
+            date={formatTransactionDate(transaction.date)}
+            category={transaction.category_name}
+            transaction={transaction.title}
+            value={transaction.amount}
+          />
+        ))}
       </View>
     </ParallaxScrollView>
   );

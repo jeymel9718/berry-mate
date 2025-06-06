@@ -143,12 +143,19 @@ export default function AnalysisScreen() {
     const fetchPieData = async () => {
       // Fetch top categories from the database
       const categories = await categoryDB.getTopCategories(db);
-      console.info("Fetched top categories:", categories);
-      const formattedPieData = categories.map((category) => ({
-        x: category.category,
-        y: category.total_expense,
-        color: getUniquePieColor(category.category),
-      }));
+      const formattedPieData = categories
+        .filter(
+          (category) =>
+        category.percentage > 0 &&
+        category.total_expense > 0 &&
+        category.percentage !== undefined &&
+        category.total_expense !== undefined
+        )
+        .map((category) => ({
+          x: category.category,
+          y: Math.ceil(category.percentage),
+          color: getUniquePieColor(category.category),
+        }));
       setPieData(formattedPieData);
     };
     fetchPieData();

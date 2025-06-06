@@ -2,21 +2,20 @@ import CircularProgressBar from "../CircularProgressBar";
 import { View, StyleSheet } from "react-native";
 import { Divider, Icon, Text } from "react-native-paper";
 import { windowHeight, windowWidth } from "@/constants/Dimensions";
+import { TopCategoryIcon } from "@/db/services/categories";
 
 export type TopCategoryProps = {
-  categoryName: string;
-  budget: number;
-  balance: number;
-  iconName: string;
+  firstCategory: TopCategoryIcon;
+  secondCategory: TopCategoryIcon;
+  revenue: number;
 };
 
 export function TopCategory({
-  categoryName,
-  budget,
-  balance,
-  iconName,
+  firstCategory,
+  secondCategory,
+  revenue
 }: TopCategoryProps) {
-  const progress = (balance / budget) * 100;
+  const progress = (firstCategory.total_expense / firstCategory.target) * 100;
   return (
     <View style={styles.container}>
       <View style={styles.center}>
@@ -26,9 +25,9 @@ export function TopCategory({
           progress={progress}
           color="#4caf50"
           backgroundColor="#e0e0e0"
-          iconName={iconName}
+          iconName={firstCategory.icon}
         />
-        <Text variant="labelMedium">{categoryName}</Text>
+        <Text variant="labelMedium">{firstCategory.name}</Text>
       </View>
       <Divider horizontalInset style={styles.divider} />
       <View>
@@ -40,20 +39,20 @@ export function TopCategory({
           />
           <View>
             <Text style={styles.label}>Revenue Last Week</Text>
-            <Text style={styles.amount}>$4,000.00</Text>
+            <Text style={styles.amount}>${revenue}</Text>
           </View>
         </View>
         <Divider style={styles.horizontalDivider} />
         <View style={styles.itemContainer}>
         <Icon
-          source="silverware-fork-knife"
+          source={secondCategory.icon}
           size={32}
           color="#0E2B17"
         />
         <View>
-          <Text style={styles.label}>Food Last Week</Text>
+          <Text style={styles.label}>{secondCategory.name} Last Week</Text>
           <Text style={[styles.amount, { color: '#E02424' }]}>
-            -$100.00
+            -${secondCategory.total_expense}
           </Text>
         </View>
       </View>
@@ -66,8 +65,9 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     marginVertical: 2,
-    padding: 5,
+    padding: 10,
   },
   center: {
     alignItems: "center",

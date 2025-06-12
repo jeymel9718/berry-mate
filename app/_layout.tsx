@@ -25,18 +25,18 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-  const isOnBoarding = useOnBoarding();
+  const {loading, isOnBoardingComplete} = useOnBoarding();
 
   const paperTheme =
     colorScheme === "dark" ? { ...MD3DarkTheme } : { ...MD3LightTheme };
 
   useEffect(() => {
-    if (loaded && isOnBoarding != null) {
+    if (loaded && !loading) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [loaded, loading]);
 
-  if (!loaded || isOnBoarding == null) {
+  if (!loaded || loading) {
     return null;
   }
 
@@ -49,10 +49,10 @@ export default function RootLayout() {
             onInit={migrateDbIfNeeded}
           >
             <Stack>
-              <Stack.Protected guard={isOnBoarding}>
+              <Stack.Protected guard={isOnBoardingComplete}>
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               </Stack.Protected>
-              <Stack.Protected guard={!isOnBoarding}>
+              <Stack.Protected guard={!isOnBoardingComplete}>
                 <Stack.Screen name="onboarding" options={{ headerShown: false }} />
               </Stack.Protected>
               <Stack.Screen name="+not-found" />

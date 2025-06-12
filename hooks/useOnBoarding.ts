@@ -1,8 +1,9 @@
 import * as SQLite from 'expo-sqlite';
 import { useEffect, useState } from "react";
 
-export function useOnBoarding() {
-  const [isOnBoardingComplete, setIsOnBoardingComplete] = useState<boolean | null>(null);
+export function useOnBoarding(): {loading: boolean, isOnBoardingComplete: boolean} {
+  const [isOnBoardingComplete, setIsOnBoardingComplete] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const checkOnBoardingStatus = async () => {
@@ -12,14 +13,16 @@ export function useOnBoarding() {
           "SELECT value FROM user_config WHERE key = 'onboarding_complete'"
         );
         setIsOnBoardingComplete(result?.value === '1');
+        setLoading(false);
       } catch (error) {
         console.error("Error checking onboarding status:", error);
         setIsOnBoardingComplete(false);
+        setLoading(false);
       }
     };
 
     checkOnBoardingStatus();
   }, []);
 
-  return isOnBoardingComplete;
+  return {loading, isOnBoardingComplete};
 }

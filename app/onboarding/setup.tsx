@@ -18,7 +18,7 @@ export default function OnboardingSetup() {
 
   const [step, setStep] = useState(0);
   const [target, setTarget] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState("");
 
   const screens = [
     {
@@ -53,6 +53,7 @@ export default function OnboardingSetup() {
               style={styles.picker}
               itemStyle={{ fontSize: 16 }}
             >
+              <Picker.Item label="Select currency" value="" />
               {CURRENCIES.map((c) => (
                 <Picker.Item key={c.value} label={c.label} value={c.value} />
               ))}
@@ -63,13 +64,18 @@ export default function OnboardingSetup() {
     },
     {
       title: "All Set!",
-      subtitle: "Let's start tracking your expenses.",
+      subtitle: "Your configuration is complete",
       content: (
-        <Image
-          source={require("@/assets/images/react-logo.png")}
-          style={styles.imageSmall}
-          resizeMode="contain"
-        />
+        <View style={{ alignItems: "center" }}>
+          <Image
+            source={require("@/assets/images/react-logo.png")}
+            style={styles.imageSmall}
+            resizeMode="contain"
+          />
+          <Button mode="contained" onPress={onFinish} style={{ marginTop: 16 }}>
+            Go to Home
+          </Button>
+        </View>
       ),
     },
   ];
@@ -84,6 +90,9 @@ export default function OnboardingSetup() {
   };
 
   const handleNext = () => {
+    if (step === 1 && (!target || !currency)) {
+      return;
+    }
     if (!isLast) {
       setStep(step + 1);
     } else {
@@ -113,9 +122,16 @@ export default function OnboardingSetup() {
             />
           ))}
         </View>
-        <Button mode="contained" onPress={handleNext} style={styles.button}>
-          {isLast ? "Get Started" : "Next"}
-        </Button>
+        {step !== screens.length - 1 && (
+          <Button
+            mode="contained"
+            onPress={handleNext}
+            style={styles.button}
+            disabled={step === 1 && (!target || !currency)}
+          >
+            Next
+          </Button>
+        )}
       </View>
     </View>
   );
